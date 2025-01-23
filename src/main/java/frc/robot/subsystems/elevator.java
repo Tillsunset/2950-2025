@@ -10,10 +10,13 @@ package frc.robot.subsystems;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -21,40 +24,53 @@ public class elevator extends SubsystemBase {
 
 	private SparkMax front = new SparkMax(1, MotorType.kBrushless);
 	private SparkMax back = new SparkMax(2, MotorType.kBrushless);
-	private SparkAbsoluteEncoder encoder = front.getAbsoluteEncoder();
-
-	public double setPoint = 0;
-	private double encoderStart;
-	private double kF = 0;
-	private double kP = 0;
-	private double kD = 0;
+	
+	private SparkClosedLoopController closedLoopController = front.getClosedLoopController();
 
 	public elevator() {
-		sparkMaxConfigureHelper(front, null, true);
-		sparkMaxConfigureHelper(back, front, false);
-		encoderStart = encoder.getPosition();
+		SparkMaxConfig leaderConfig = new SparkMaxConfig();
+		SparkMaxConfig followerConfig = new SparkMaxConfig();
+
+		leaderConfig.smartCurrentLimit(20)
+			.idleMode(IdleMode.kBrake);
+
+		/*
+		* Configure the closed loop controller. We want to make sure we set the
+		* feedback sensor as the primary encoder.
+		*/
+		leaderConfig.closedLoop
+			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+			// Set PID values for position control. We don't need to pass a closed loop
+			// slot, as it will default to slot 0.
+			.p(0.001)
+			.i(0)
+			.d(0)
+			.outputRange(-1, 1);
+
+		/*
+		* Apply the configuration to the SPARK MAX.
+		*
+		* kResetSafeParameters is used to get the SPARK MAX to a known state. This
+		* is useful in case the SPARK MAX is replaced.
+		*
+		* kPersistParameters is used to ensure the configuration is not lost when
+		* the SPARK MAX loses power. This is useful for power cycles that may occur
+		* mid-operation.
+		*/
+
+		followerConfig
+			.apply(leaderConfig)
+			.follow(front)
+			.inverted(true);
+
+		front.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		back.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 	}
 
 	@Override
-	public void periodic() {
-		double posError = setPoint - (encoder.getPosition() - encoderStart);
+	public void periodic() {}
 
-		front.set(kF + 
-					posError * kP + 
-					encoder.getVelocity() * kD);
-	}
-
-	private void sparkMaxConfigureHelper(SparkMax x, SparkMax primary, boolean invert) {
-		SparkMaxConfig temp = new SparkMaxConfig();
-		if (primary != null) {
-			temp.follow(primary, invert);
-		}
-		else {
-			temp.inverted(invert);
-		}
-		temp.idleMode(IdleMode.kBrake);
-		temp.smartCurrentLimit(20);
-
-		x.configure(temp, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+	public void updateTargetPosition(double target) {
+		closedLoopController.setReference(target, ControlType.kPosition, ClosedLoopSlot.kSlot0);
 	}
 }

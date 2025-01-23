@@ -28,56 +28,58 @@ public class driveTrain extends SubsystemBase {
 	private SparkMax driveFL = new SparkMax(3, MotorType.kBrushless);
 	private SparkMax driveBL = new SparkMax(4, MotorType.kBrushless);
 
-	// private WPI_TalonSRX driveFR = talonSRXConstructor(1);
-	// private WPI_TalonSRX driveBR = talonSRXConstructor(2);
-	// private WPI_TalonSRX driveFL = talonSRXConstructor(3);
-	// private WPI_TalonSRX driveBL = talonSRXConstructor(4);
-
 	public DifferentialDrive driveBase = new DifferentialDrive(driveFR, driveFL);
 
 	public driveTrain() {
-		// driveFR.setInverted(InvertType.InvertMotorOutput);
-		// driveBR.follow(driveFR);
-		// driveBR.setInverted(InvertType.FollowMaster);
-		
-		// driveFL.setInverted(InvertType.None);
-		// driveBL.follow(driveFL);
-		// driveBL.setInverted(InvertType.FollowMaster);
+		/*
+		* Create new SPARK MAX configuration objects. These will store the
+		* configuration parameters for the SPARK MAXes that we will set below.
+		*/
+		SparkMaxConfig globalConfig = new SparkMaxConfig();
+		SparkMaxConfig rightLeaderConfig = new SparkMaxConfig();
+		SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
+		SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
 
-		sparkMaxConfigureHelper(driveFR, null, true);
-		sparkMaxConfigureHelper(driveBR, driveFR, false);
-		sparkMaxConfigureHelper(driveFL, null, false);
-		sparkMaxConfigureHelper(driveBL, driveFL, false);
+		/*
+		* Set parameters that will apply to all SPARKs. We will also use this as
+		* the left leader config.
+		*/
+		globalConfig
+			.smartCurrentLimit(20)
+			.idleMode(IdleMode.kBrake);
+
+		// Apply the global config and invert since it is on the opposite side
+		rightLeaderConfig
+			.apply(globalConfig)
+			.inverted(true);
+
+		// Apply the global config and set the leader SPARK for follower mode
+		leftFollowerConfig
+			.apply(globalConfig)
+			.follow(driveFL);
+
+		// Apply the global config and set the leader SPARK for follower mode
+		rightFollowerConfig
+			.apply(globalConfig)
+			.follow(driveFR);
+
+		/*
+		* Apply the configuration to the SPARKs.
+		*
+		* kResetSafeParameters is used to get the SPARK MAX to a known state. This
+		* is useful in case the SPARK MAX is replaced.
+		*
+		* kPersistParameters is used to ensure the configuration is not lost when
+		* the SPARK MAX loses power. This is useful for power cycles that may occur
+		* mid-operation.
+		*/
+		driveFR.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		driveBR.configure(leftFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		driveFL.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		driveBL.configure(rightFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 	}
 
 	@Override
 	public void periodic() {
 	}
-
-	private void sparkMaxConfigureHelper(SparkMax x, SparkMax primary, boolean invert) {
-		SparkMaxConfig temp = new SparkMaxConfig();
-		if (primary != null) {
-			temp.follow(primary, invert);
-		}
-		else {
-			temp.inverted(invert);
-		}
-		temp.idleMode(IdleMode.kBrake);
-		temp.smartCurrentLimit(20);
-
-		x.configure(temp, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-	}
-
-	// private WPI_TalonSRX talonSRXConstructor(int x) {
-	// 	WPI_TalonSRX temp = new WPI_TalonSRX(x);
-
-	// 	temp.configContinuousCurrentLimit(20);// used standard play
-	// 	temp.configPeakCurrentLimit(40, 1000);// used for pushing, limit for stopping wheel spin
-	// 	temp.enableCurrentLimit(true);
-	// 	// temp.configOpenloopRamp(.25);// fine tune for best responsiveness
-	// 	// temp.configClosedloopRamp(0);// used for driving by encoders
-	// 	temp.setNeutralMode(NeutralMode.Brake);
-
-	// 	return temp;
-	// }
 }
