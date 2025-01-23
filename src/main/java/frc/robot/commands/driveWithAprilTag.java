@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * An example command that uses an example subsystem.
  */
-public class followApriTag extends Command {
+public class driveWithAprilTag extends Command {
 	private final driveTrain m_driveTrain;
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 
@@ -35,7 +35,7 @@ public class followApriTag extends Command {
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public followApriTag(driveTrain driveTrain) {
+	public driveWithAprilTag(driveTrain driveTrain) {
 		// Use requires() here to declare subsystem dependencies.
 		m_driveTrain = driveTrain;
 		addRequirements(m_driveTrain);

@@ -21,7 +21,6 @@ public class driveWithJoystick extends Command {
 	private final driveTrain m_driveTrain;
 	private DoubleSupplier leftAxis;
 	private DoubleSupplier rightAxis;
-	private boolean increaseSens = true;
 	private double scale = 1;
 
 	/**
@@ -31,7 +30,7 @@ public class driveWithJoystick extends Command {
 	 */
 	public driveWithJoystick(driveTrain driveTrain, XboxController x) {
 		leftAxis = x::getLeftY;
-		leftAxis = x::getRightY;
+		rightAxis = x::getRightY;
 		// Use requires() here to declare subsystem dependencies.
 		m_driveTrain = driveTrain;
 		addRequirements(m_driveTrain);

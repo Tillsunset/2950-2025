@@ -45,7 +45,7 @@ public class driveTrain extends SubsystemBase {
 		// driveBL.setInverted(InvertType.FollowMaster);
 
 		sparkMaxConfigureHelper(driveFR, null, true);
-		sparkMaxConfigureHelper(driveBR, driveFR, true);
+		sparkMaxConfigureHelper(driveBR, driveFR, false);
 		sparkMaxConfigureHelper(driveFL, null, false);
 		sparkMaxConfigureHelper(driveBL, driveFL, false);
 	}
@@ -57,10 +57,12 @@ public class driveTrain extends SubsystemBase {
 	private void sparkMaxConfigureHelper(SparkMax x, SparkMax primary, boolean invert) {
 		SparkMaxConfig temp = new SparkMaxConfig();
 		if (primary != null) {
-			temp.follow(primary);
+			temp.follow(primary, invert);
+		}
+		else {
+			temp.inverted(invert);
 		}
 		temp.idleMode(IdleMode.kBrake);
-		temp.inverted(invert);
 		temp.smartCurrentLimit(20);
 
 		x.configure(temp, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
