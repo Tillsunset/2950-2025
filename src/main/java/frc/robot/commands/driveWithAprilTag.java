@@ -1,9 +1,9 @@
-/*----------------------------------------------------------------------------/
-/ Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        /
-/ Open Source Software - may be modified and shared by FRC teams. The code   /
-/ must be accompanied by the FIRST BSD license file in the root directory of /
-/ the project.                                                               /
-/----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in the root directory of */
+/* the project.                                                               */
+/*----------------------------------------------------------------------------*/
 
 package frc.robot.commands;
 
@@ -12,8 +12,8 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 
-/*
-  An example command that uses an example subsystem.
+/**
+ * An example command that uses an example subsystem.
  */
 public class driveWithAprilTag extends Command {
 	private final driveTrain m_driveTrain;
@@ -48,46 +48,31 @@ public class driveWithAprilTag extends Command {
 	public void initialize() {
 	}
 
-	enum t2dEnum
-	{
-		targetValid(0),
-		targetCount(1),
-		targetLatency(2),
-		captureLatency(3),
-		tx(4),
-		ty(5),
-		txnc(6),
-		tync(7),
-		ta(8),
-		tid(9),
-		targetClassIndexDetector(10),
-		targetClassIndexClassifier(11),
-		targetLongSidePixels(12),
-		targetShortSidePixels(13),
-		targetHorizontalExtentPixels(14),
-		targetVerticalExtentPixels(15),
-		targetSkewDegrees(16);
+	enum t2dEnum {
+		tx(0),
+		ty(1),
+		tz(2),
+		pitch(3),
+		yaw(4),
+		roll(5);
 
-		private final int index;
+		private final int val;
 
-		private t2dEnum(int index) 
-		{ 
-			this.index = index; 
+		private t2dEnum(int val) { 
+			this.val = val; 
 		} 
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
-		double[] t2d = table.getEntry("t2d").getDoubleArray(new double[0]);
-		if (t2d.length == 17 && t2d[t2dEnum.targetValid.index] > 0) {
-			double targetAngleVerticalDegrees = t2d[t2dEnum.ty.index];
-			
-			double angleToGoalRadians = (limelightMountAngleDegrees + targetAngleVerticalDegrees) * (3.14159 / 180.0);
-		
-			double distanceToAprilTagMeters = (goalHeightMeters - limelightLensHeightMeters) / Math.tan(angleToGoalRadians);
+		boolean valid = table.getEntry("tv").getBoolean(false);
+		double[] t2d = table.getEntry("targetpose_cameraspace").getDoubleArray(new double[0]);
+		if (valid && t2d.length == 6) {
+			double xOffset = t2d[t2dEnum.tx.val];
+			double scale = 0.5;
 
-			double targetSkewDegrees = t2d[t2dEnum.targetSkewDegrees.index];
+			m_driveTrain.driveBase.arcadeDrive(0, xOffset * scale);
 		}
 		else {
 		}
