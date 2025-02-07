@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class driveTrain extends SubsystemBase {
 
-	private SparkMax driveFR = new SparkMax(1, MotorType.kBrushless);
-	private SparkMax driveBR = new SparkMax(2, MotorType.kBrushless);
+	private SparkMax driveFR = new SparkMax(2, MotorType.kBrushless);
+	private SparkMax driveBR = new SparkMax(1, MotorType.kBrushless);
 	private SparkMax driveFL = new SparkMax(3, MotorType.kBrushless);
 	private SparkMax driveBL = new SparkMax(4, MotorType.kBrushless);
 
@@ -42,17 +42,18 @@ public class driveTrain extends SubsystemBase {
 		*/
 		globalConfig
 			.smartCurrentLimit(20)
+			.inverted(true)
 			.idleMode(IdleMode.kBrake);
-
-		// Apply the global config and invert since it is on the opposite side
-		rightLeaderConfig
-			.apply(globalConfig)
-			.inverted(true);
 
 		// Apply the global config and set the leader SPARK for follower mode
 		leftFollowerConfig
 			.apply(globalConfig)
 			.follow(driveFL);
+
+		// Apply the global config and invert since it is on the opposite side
+		rightLeaderConfig
+		.apply(globalConfig)
+		.inverted(false);
 
 		// Apply the global config and set the leader SPARK for follower mode
 		rightFollowerConfig

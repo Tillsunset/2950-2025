@@ -19,7 +19,7 @@ public class driveWithAprilTag extends Command {
 	private final driveTrain m_driveTrain;
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 
-	double forwardGoalDistance = 3;
+	double forwardGoalDistance = 2;
 	double sideGoalDistance = 3;
 
 	double kPDistance = 0.1;
@@ -66,15 +66,19 @@ public class driveWithAprilTag extends Command {
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
-		boolean valid = table.getEntry("tv").getBoolean(false);
 		double[] t2d = table.getEntry("targetpose_cameraspace").getDoubleArray(new double[0]);
-		if (valid && t2d.length == 6) {
+		if (t2d.length == 6) {
 			double xOffset = t2d[t2dEnum.tx.val];
-			double scale = 0.5;
+			double xScale = -2;
 
-			m_driveTrain.driveBase.arcadeDrive(0, xOffset * scale);
+			double distance = t2d[t2dEnum.ty.val];
+			double distanceError = distance - forwardGoalDistance;
+			double distanceSCale = 0.0;
+
+			m_driveTrain.driveBase.arcadeDrive(distanceError * distanceSCale, xOffset * xScale, false);
 		}
 		else {
+			m_driveTrain.driveBase.feed();
 		}
 	}
 

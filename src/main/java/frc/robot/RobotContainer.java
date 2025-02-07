@@ -20,23 +20,23 @@ public class RobotContainer {
 	private Trigger dRight = xbox.povRight();
 
 	private driveTrain m_driveTrain = new driveTrain();
-	private elevator m_elevator = new elevator();
+	// private elevator m_elevator = new elevator();
 	
 	private driveWithJoystick m_driveWithJoystick = new driveWithJoystick(m_driveTrain, xbox.getHID());
 	private driveWithAprilTag m_driveWithAprilTag = new driveWithAprilTag(m_driveTrain);
-	private elevatorL1 m_elevatorL1 = new elevatorL1(m_elevator);
-	private elevatorL2 m_elevatorL2 = new elevatorL2(m_elevator);
+	// private elevatorL1 m_elevatorL1 = new elevatorL1(m_elevator);
+	// private elevatorL2 m_elevatorL2 = new elevatorL2(m_elevator);
 
 	public RobotContainer() {
 		m_driveTrain.setDefaultCommand(m_driveWithJoystick);
-		m_elevator.register();
+		// m_elevator.register();
 		configureBindings();
 	}
 	
 	private void configureBindings() {
 		buttonRB.whileTrue(m_driveWithAprilTag);
-		dDown.whileTrue(m_elevatorL1);
-		dLeft.whileTrue(m_elevatorL2);
+		// dDown.whileTrue(m_elevatorL1);
+		// dLeft.whileTrue(m_elevatorL2);
 	}
 
 	public Command getAutonomousCommand() {
