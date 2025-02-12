@@ -1,22 +1,48 @@
 package frc.robot.subsystems;
+
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class archerarm extends SubsystemBase {
+public class algeaArm extends SubsystemBase {
+	private SparkMax algeaArm = new SparkMax(1, MotorType.kBrushless);
+	
+	private SparkClosedLoopController closedLoopController = algeaArm.getClosedLoopController();
 
-private SparkMax archer1 = new SparkMax(1, MotorType.kBrushless);
+	private double inchToPos = 90 * 42;
+	private double feedForward = 0.1;
 
- public archerarm(){
-   SparkMaxConfig archerarMaxConfig = new SparkMaxConfig();
-    archerarMaxConfig
-   .smartCurrentLimit(20)
+	public algeaArm(){
+		SparkMaxConfig algeaArmConfig = new SparkMaxConfig();
+
+		algeaArmConfig
+			.smartCurrentLimit(20)
 			.idleMode(IdleMode.kBrake);
-            archer1.configure(archerarMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
- } 
+
+		algeaArmConfig.closedLoop
+			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+			.p(0.001)
+			.i(0)
+			.d(0)
+			.outputRange(-1, 1);
+
+		algeaArm.configure(algeaArmConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+	}
+
+	@Override
+	public void periodic() {}
+
+	public void updateTargetAngle(double target) {
+		closedLoopController.setReference(target * inchToPos, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
+	}
 }
