@@ -7,49 +7,43 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.driveTrain;
+import frc.robot.subsystems.coralIntake;
 
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * An example command that uses an example subsystem.
  */
-public class driveWithJoystick extends Command {
-	private final driveTrain m_driveTrain;
-	private DoubleSupplier leftAxis;
-	private DoubleSupplier rightAxis;
-	private double scale = 1;
+public class coralintake1 extends Command {
+	private final coralIntake m_coralIntake;
 
 	/**
 	 * Creates a new ExampleCommand.
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public driveWithJoystick(driveTrain driveTrain, XboxController x) {
-		leftAxis = x::getLeftY;
-		rightAxis = x::getRightY;
+	public coralintake1(coralIntake coralintake){
 		// Use requires() here to declare subsystem dependencies.
-		m_driveTrain = driveTrain;
-		addRequirements(m_driveTrain);
+		m_coralIntake = coralintake;
+		addRequirements(m_coralIntake);
 	}
 
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
+		m_coralIntake.set(0.0);
+
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
-		m_driveTrain.driveBase.tankDrive(scale * leftAxis.getAsDouble(), scale * rightAxis.getAsDouble());
 	}
 
 	// Called once the command ends or is interrupted.
 	@Override
 	public void end(boolean interrupted) {
+		m_coralintake.set(0);
 	}
 
 	// Returns true when the command should end.

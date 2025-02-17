@@ -1,15 +1,17 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class coralIntake extends SubsystemBase {
 
-	private TalonSRX coralIntake = new TalonSRX(1);
+	private WPI_VictorSPX coralIntake = new WPI_VictorSPX(1);
 
-	public coralIntake(){
-	
-		
-	} 
+	public coralIntake() {	
+	}
+
+	public void set(double output) {
+		coralIntake.set(output);
+	}
 }
