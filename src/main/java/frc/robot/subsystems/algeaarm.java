@@ -15,11 +15,10 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class algeaArm extends SubsystemBase {
-	private SparkMax algeaArm = new SparkMax(1, MotorType.kBrushless);
+	private SparkMax algeaArm = new SparkMax(19, MotorType.kBrushless);
 	
 	private SparkClosedLoopController closedLoopController = algeaArm.getClosedLoopController();
 
-	private double inchToPos = 90 * 42;
 	private double feedForward = 0.1;
 
 	public algeaArm(){
@@ -31,7 +30,7 @@ public class algeaArm extends SubsystemBase {
 
 		algeaArmConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0.001)
+			.p(0)
 			.i(0)
 			.d(0)
 			.outputRange(-1, 1);
@@ -43,6 +42,6 @@ public class algeaArm extends SubsystemBase {
 	public void periodic() {}
 
 	public void updateTargetAngle(double target) {
-		closedLoopController.setReference(target * inchToPos, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
+		closedLoopController.setReference(target, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
 	}
 }

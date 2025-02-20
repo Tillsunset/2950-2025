@@ -11,12 +11,13 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class driveTrain extends SubsystemBase {
-	private SparkMax driveFR = new SparkMax(2, MotorType.kBrushless);
-	private SparkMax driveBR = new SparkMax(1, MotorType.kBrushless);
-	private SparkMax driveFL = new SparkMax(3, MotorType.kBrushless);
-	private SparkMax driveBL = new SparkMax(4, MotorType.kBrushless);
+	private SparkMax driveFR = new SparkMax(16, MotorType.kBrushless);
+	private SparkMax driveBR = new SparkMax(20, MotorType.kBrushless);
 
-	public DifferentialDrive driveBase = new DifferentialDrive(driveFR, driveFL);
+	private SparkMax driveFL = new SparkMax(17, MotorType.kBrushless);
+	private SparkMax driveBL = new SparkMax(3, MotorType.kBrushless);
+
+	public DifferentialDrive driveBase = new DifferentialDrive(driveFL, driveFR);
 
 	public driveTrain() {
 		SparkMaxConfig globalConfig = new SparkMaxConfig();
@@ -25,9 +26,9 @@ public class driveTrain extends SubsystemBase {
 		SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
 
 		globalConfig
-			.smartCurrentLimit(20)
+			.smartCurrentLimit(40)
 			.inverted(true)
-			.idleMode(IdleMode.kBrake);
+			.idleMode(IdleMode.kCoast);
 
 		leftFollowerConfig
 			.apply(globalConfig)
@@ -38,11 +39,13 @@ public class driveTrain extends SubsystemBase {
 			.inverted(false);
 
 		rightFollowerConfig
-			.apply(globalConfig)
+			.apply(rightLeaderConfig)
 			.follow(driveFR);
 
 		driveFR.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		driveBR.configure(leftFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+
 		driveFL.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		driveBL.configure(rightFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 	}

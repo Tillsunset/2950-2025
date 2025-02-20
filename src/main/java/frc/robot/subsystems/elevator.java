@@ -16,32 +16,32 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class elevator extends SubsystemBase {
 
-	private SparkMax front = new SparkMax(1, MotorType.kBrushless);
-	private SparkMax back = new SparkMax(2, MotorType.kBrushless);
+	private SparkMax front = new SparkMax(15, MotorType.kBrushless);
+	private SparkMax back = new SparkMax(18, MotorType.kBrushless);
 	
 	private SparkClosedLoopController closedLoopController = front.getClosedLoopController();
 
-	private double inchToPos = 9 * 42 * 1.76 * Math.PI;
-	private double feedForward = 0.1;
+	private double feedForward = 0.;
 
 	public elevator() {
 		SparkMaxConfig leaderConfig = new SparkMaxConfig();
 		SparkMaxConfig followerConfig = new SparkMaxConfig();
 
-		leaderConfig.smartCurrentLimit(20)
+		leaderConfig.smartCurrentLimit(35)
 			.idleMode(IdleMode.kBrake);
 
 		leaderConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0.001)
+			.p(0.035)
 			.i(0)
 			.d(0)
-			.outputRange(-1, 1);
+			.outputRange(-0.5, 0.5);
 
 		followerConfig
-			.apply(leaderConfig)
+			.idleMode(IdleMode.kCoast)
 			.follow(front)
-			.inverted(true);
+			.inverted(true)
+			;
 
 		front.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		back.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
@@ -51,6 +51,6 @@ public class elevator extends SubsystemBase {
 	public void periodic() {}
 
 	public void updateTargetPosition(double target) {
-		closedLoopController.setReference(target * inchToPos, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
+		closedLoopController.setReference(target, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
 	}
 }

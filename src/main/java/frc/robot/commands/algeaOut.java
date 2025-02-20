@@ -7,49 +7,46 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.driveTrain;
-
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.wpilibj.XboxController;
+import frc.robot.subsystems.algeaIntake;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * An example command that uses an example subsystem.
  */
-public class driveWithJoystick extends Command {
-	private final driveTrain m_driveTrain;
-	private DoubleSupplier leftAxis;
-	private DoubleSupplier rightAxis;
-	private double scale = -1;
+public class algeaOut extends Command {
+	private final algeaIntake m_algeaIntake;
+	// AnalogInput analog = new AnalogInput(3);
 
 	/**
 	 * Creates a new ExampleCommand.
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public driveWithJoystick(driveTrain driveTrain, XboxController x) {
-		leftAxis = x::getLeftY;
-		rightAxis = x::getRightY;
+	public algeaOut(algeaIntake algeaIntake){
 		// Use requires() here to declare subsystem dependencies.
-		m_driveTrain = driveTrain;
-		addRequirements(m_driveTrain);
+		m_algeaIntake = algeaIntake;
+		addRequirements(m_algeaIntake);
+
+		// analog.setAverageBits(3);
 	}
 
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
+		m_algeaIntake.setOutput(1.);
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
-		m_driveTrain.driveBase.tankDrive(scale * leftAxis.getAsDouble(), scale * rightAxis.getAsDouble());
+		// System.out.println(analog.getAverageVoltage()/(0.293));
 	}
 
 	// Called once the command ends or is interrupted.
 	@Override
 	public void end(boolean interrupted) {
+		m_algeaIntake.setOutput(0);
 	}
 
 	// Returns true when the command should end.

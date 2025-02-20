@@ -11,7 +11,7 @@ public class algeaIntake extends SubsystemBase {
 	public algeaIntake() {
 	} 
 	
-	public void set(double output) {
+	public void setOutput(double output) {
 		algeaIntake.set(output);
 	}
 }

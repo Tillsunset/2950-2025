@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * An example command that uses an example subsystem.
  */
-public class winch1 extends Command {
+public class winchDown extends Command {
 	private final winch m_winch;
 
 	/**
@@ -14,7 +14,7 @@ public class winch1 extends Command {
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public winch1(winch winch){
+	public winchDown(winch winch){
 		// Use requires() here to declare subsystem dependencies.
 		m_winch = winch;
 		addRequirements(m_winch);
@@ -23,7 +23,7 @@ public class winch1 extends Command {
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
-        m_winch.updateTargetPosition(5);
+        m_winch.winch.set(-1);
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
@@ -34,11 +34,12 @@ public class winch1 extends Command {
 	// Called once the command ends or is interrupted.
 	@Override
 	public void end(boolean interrupted) {
+        m_winch.winch.set(0);
 	}
 
 	// Returns true when the command should end.
 	@Override
 	public boolean isFinished() {
-		return true;
+		return false;
 	}
 }

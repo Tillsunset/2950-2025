@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * An example command that uses an example subsystem.
  */
-public class algearm1 extends Command {
+public class algeaArmDown extends Command {
 	private final algeaArm m_Algearm;
 
 
@@ -15,7 +15,7 @@ public class algearm1 extends Command {
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public algearm1(algeaArm algearm){
+	public algeaArmDown(algeaArm algearm){
 		// Use requires() here to declare subsystem dependencies.
 		m_Algearm = algearm;
 		addRequirements(m_Algearm);
@@ -24,12 +24,15 @@ public class algearm1 extends Command {
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
-        m_Algearm.updateTargetAngle(5);
+       // m_Algearm.updateTargetAngle(5);
+	   
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
+		//System.out.println();
+
 	}
 
 	// Called once the command ends or is interrupted.

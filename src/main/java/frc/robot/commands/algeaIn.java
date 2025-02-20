@@ -7,43 +7,46 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.coralIntake;
-
+import frc.robot.subsystems.algeaIntake;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * An example command that uses an example subsystem.
  */
-public class coralintake1 extends Command {
-	private final coralIntake m_coralIntake;
+public class algeaIn extends Command {
+	private final algeaIntake m_algeaIntake;
+	// AnalogInput analog = new AnalogInput(3);
 
 	/**
 	 * Creates a new ExampleCommand.
 	 *
 	 * @param subsystem The subsystem used by this command.
 	 */
-	public coralintake1(coralIntake coralintake){
+	public algeaIn(algeaIntake algeaIntake){
 		// Use requires() here to declare subsystem dependencies.
-		m_coralIntake = coralintake;
-		addRequirements(m_coralIntake);
+		m_algeaIntake = algeaIntake;
+		addRequirements(m_algeaIntake);
+
+		// analog.setAverageBits(3);
 	}
 
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
-		m_coralIntake.set(0.0);
-
+		m_algeaIntake.setOutput(1.);
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
+		// System.out.println(analog.getAverageVoltage()/(0.293));
 	}
 
 	// Called once the command ends or is interrupted.
 	@Override
 	public void end(boolean interrupted) {
-		m_coralintake.set(0);
+		m_algeaIntake.setOutput(0);
 	}
 
 	// Returns true when the command should end.
