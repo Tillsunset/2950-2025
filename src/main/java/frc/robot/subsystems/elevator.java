@@ -7,6 +7,8 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -21,6 +23,8 @@ public class elevator extends SubsystemBase {
 	
 	private SparkClosedLoopController closedLoopController = front.getClosedLoopController();
 
+	private RelativeEncoder encoder = front.getEncoder();
+
 	private double feedForward = 0.;
 
 	public elevator() {
@@ -32,19 +36,18 @@ public class elevator extends SubsystemBase {
 
 		leaderConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0.035)
+			.p(0.04)
 			.i(0)
 			.d(0)
 			.outputRange(-0.5, 0.5);
 
 		followerConfig
-			.idleMode(IdleMode.kCoast)
-			.follow(front)
-			.inverted(true)
-			;
+			.follow(front, true);
 
 		front.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		back.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+		encoder.setPosition(0);
 	}
 
 	@Override

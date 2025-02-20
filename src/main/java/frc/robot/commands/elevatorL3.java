@@ -21,7 +21,7 @@ public class elevatorL3 extends Command {
 	// Called when the command is initially scheduled.
 	@Override
 	public void initialize() {
-		m_elevator.updateTargetPosition(30);
+		m_elevator.updateTargetPosition(47);
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
