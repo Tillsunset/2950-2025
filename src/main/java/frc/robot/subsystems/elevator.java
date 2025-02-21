@@ -37,7 +37,6 @@ public class elevator extends SubsystemBase {
 		leaderConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 			.p(0.04)
-			.i(0)
 			.d(0)
 			.outputRange(-0.5, 0.5);
 
