@@ -14,14 +14,14 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class algeaArm extends SubsystemBase {
+public class algaeArm extends SubsystemBase {
 	private SparkMax algeaArm = new SparkMax(19, MotorType.kBrushless);
 	
 	private SparkClosedLoopController closedLoopController = algeaArm.getClosedLoopController();
 
 	private double feedForward = 0.1;
 
-	public algeaArm(){
+	public algaeArm(){
 		SparkMaxConfig algeaArmConfig = new SparkMaxConfig();
 
 		algeaArmConfig

@@ -8,24 +8,29 @@ import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
 public class RobotContainer {
-	private CommandXboxController xbox = new CommandXboxController(0);
-	private Trigger buttonRB = xbox.rightBumper();
-	private Trigger dDown = xbox.povDown();
-	private Trigger dLeft = xbox.povLeft();
-	private Trigger dUp = xbox.povUp();
-	private Trigger dRight = xbox.povRight();
-    private Trigger Abutton = xbox.a();
-	private Trigger Bbuttton = xbox.b();
-	private Trigger Xbutton = xbox.x();
-	private Trigger Ybutton = xbox.y();
+	private CommandXboxController green = new CommandXboxController(0);
+	private Trigger buttonRB = green.rightBumper();
+	private Trigger dDown = green.povDown();
+	private Trigger dLeft = green.povLeft();
+	private Trigger dUp = green.povUp();
+	private Trigger dRight = green.povRight();
+    private Trigger Abutton = green.a();
+	private Trigger Bbuttton = green.b();
+	private Trigger Xbutton = green.x();
+	private Trigger Ybutton = green.y();
+
+	private CommandXboxController purple = new CommandXboxController(1);
 
 	private driveTrain m_driveTrain = new driveTrain();
 	private elevator m_elevator = new elevator();
 	private coralIntake m_coralIntake = new coralIntake();
 	private winch m_Winch = new winch();
-	// private algeaArm m_AlgeaArm = new algeaArm();
+	private algaeArm m_AlgeaArm = new algaeArm();
+	private algaeIntake m_algeaIntake = new algaeIntake();
 	
-	private driveWithJoystick m_driveWithJoystick = new driveWithJoystick(m_driveTrain, xbox.getHID());
+	private driveTank m_driveTank = new driveTank(m_driveTrain, green.getHID());
+	// private driveArcade m_driveArcade = new driveArcade(m_driveTrain, green.getHID());
+	// private driveCheesy m_driveCheesy = new driveCheesy(m_driveTrain, green.getHID());
 	// private driveWithAprilTag m_driveWithAprilTag = new driveWithAprilTag(m_driveTrain);
 
 	private elevatorL1 m_elevatorL1 = new elevatorL1(m_elevator);
@@ -36,14 +41,19 @@ public class RobotContainer {
 	private coralIn m_coralIn = new coralIn(m_coralIntake);
 	private coralOut m_coralOut = new coralOut(m_coralIntake);
 
-	// private algeaArmDown m_AlgeaArmDown = new algeaArmDown(m_AlgeaArm);
-	// private algeaArmUp m_AlgeaarmUp = new algeaArmUp(m_AlgeaArm);
+	private algeaArmDown m_AlgeaArmDown = new algeaArmDown(m_AlgeaArm);
+	private algeaArmUp m_AlgeaarmUp = new algeaArmUp(m_AlgeaArm);
+
+	private algeaIn m_AlgeaIn = new algeaIn(m_algeaIntake);
+	private algeaOut m_AlgeaOut = new algeaOut(m_algeaIntake);
 
 	private winchUp m_WinchUp = new winchUp(m_Winch);
 	private winchDown m_WinchDown = new winchDown(m_Winch);
 
 	public RobotContainer() {
-		m_driveTrain.setDefaultCommand(m_driveWithJoystick);
+		m_driveTrain.setDefaultCommand(m_driveTank);
+		// m_driveTrain.setDefaultCommand(m_driveArcade);
+		// m_driveTrain.setDefaultCommand(m_driveCheesy);
 		configureBindings();
 	}
 	
