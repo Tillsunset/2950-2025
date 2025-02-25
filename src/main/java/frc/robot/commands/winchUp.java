@@ -14,7 +14,7 @@ public class winchUp extends Command {
 
 	@Override
 	public void initialize() {
-        m_winch.winch.set(1);
+        m_winch.winch.set(1.0);
 	}
 
 	@Override

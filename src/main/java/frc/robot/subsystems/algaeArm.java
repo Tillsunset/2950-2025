@@ -30,7 +30,7 @@ public class algaeArm extends SubsystemBase {
 
 		algeaArmConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0)
+			.p(0.01)
 			.d(0)
 			.outputRange(-0.5, 0.5);
 

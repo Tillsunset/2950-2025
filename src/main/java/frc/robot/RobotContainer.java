@@ -28,9 +28,9 @@ public class RobotContainer {
 	private algaeArm m_AlgeaArm = new algaeArm();
 	private algaeIntake m_algeaIntake = new algaeIntake();
 	
-	private driveTank m_driveTank = new driveTank(m_driveTrain, green.getHID());
+	// private driveTank m_driveTank = new driveTank(m_driveTrain, green.getHID());
 	// private driveArcade m_driveArcade = new driveArcade(m_driveTrain, green.getHID());
-	// private driveCheesy m_driveCheesy = new driveCheesy(m_driveTrain, green.getHID());
+	private driveCheesy m_driveCheesy = new driveCheesy(m_driveTrain, green.getHID());
 	// private driveWithAprilTag m_driveWithAprilTag = new driveWithAprilTag(m_driveTrain);
 
 	private elevatorL1 m_elevatorL1 = new elevatorL1(m_elevator);
@@ -51,9 +51,9 @@ public class RobotContainer {
 	private winchDown m_WinchDown = new winchDown(m_Winch);
 
 	public RobotContainer() {
-		m_driveTrain.setDefaultCommand(m_driveTank);
+		// m_driveTrain.setDefaultCommand(m_driveTank);
 		// m_driveTrain.setDefaultCommand(m_driveArcade);
-		// m_driveTrain.setDefaultCommand(m_driveCheesy);
+		m_driveTrain.setDefaultCommand(m_driveCheesy);
 		configureBindings();
 	}
 	

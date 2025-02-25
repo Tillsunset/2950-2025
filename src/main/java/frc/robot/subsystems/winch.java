@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class winch extends SubsystemBase {
 
-	public SparkMax winch = new SparkMax(14, MotorType.kBrushless);
+	public SparkMax winch = new SparkMax(19, MotorType.kBrushless);
 	
 	private SparkClosedLoopController closedLoopController = winch.getClosedLoopController();
 
@@ -30,12 +30,12 @@ public class winch extends SubsystemBase {
 			.smartCurrentLimit(40)
 			.idleMode(IdleMode.kBrake);
 
-		winchConfig.closedLoop
-			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0.001)
-			.i(0)
-			.d(0)
-			.outputRange(-1, 1);
+		// winchConfig.closedLoop
+		// 	.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+		// 	.p(0.001)
+		// 	.i(0)
+		// 	.d(0)
+		// 	.outputRange(-1, 1);
 
 		winch.configure(winchConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 	}
