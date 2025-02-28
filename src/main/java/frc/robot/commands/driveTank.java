@@ -11,11 +11,13 @@ public class driveTank extends Command {
 	private final driveTrain m_driveTrain;
 	private DoubleSupplier leftAxis;
 	private DoubleSupplier rightAxis;
+	private DoubleSupplier flipFront;
 	private double scale = -1;
 
 	public driveTank(driveTrain driveTrain, XboxController x) {
 		leftAxis = x::getLeftY;
 		rightAxis = x::getRightY;
+		flipFront = x::getLeftTriggerAxis;
 		m_driveTrain = driveTrain;
 		addRequirements(m_driveTrain);
 	}
@@ -26,7 +28,13 @@ public class driveTank extends Command {
 
 	@Override
 	public void execute() {
-		m_driveTrain.driveBase.tankDrive(scale * leftAxis.getAsDouble(), scale * rightAxis.getAsDouble());
+		if (Math.abs(flipFront.getAsDouble()) > 0.1) {
+			m_driveTrain.driveBase.tankDrive(-scale * rightAxis.getAsDouble(), -scale * leftAxis.getAsDouble());
+
+		}
+		else {
+			m_driveTrain.driveBase.tankDrive(scale * leftAxis.getAsDouble(), scale * rightAxis.getAsDouble());
+		}
 	}
 
 	@Override

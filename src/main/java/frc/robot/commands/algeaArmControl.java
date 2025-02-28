@@ -2,23 +2,31 @@ package frc.robot.commands;
 
 import frc.robot.subsystems.algaeArm;
 
+import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class algeaArmDown extends Command {
+public class algeaArmControl extends Command {
 	private final algaeArm m_Algearm;
+	private DoubleSupplier trigger;
 
-	public algeaArmDown(algaeArm algearm){
+	public algeaArmControl(algaeArm algearm, XboxController xbox){
 		m_Algearm = algearm;
 		addRequirements(m_Algearm);
+
+		trigger = xbox::getRightTriggerAxis;
 	}
 
 	@Override
 	public void initialize() {
-       // m_Algearm.updateTargetAngle(-50);
 	}
 
 	@Override
 	public void execute() {
+		double position = 0 - 35 * trigger.getAsDouble();
+		m_Algearm.updateTargetAngle(position);
+
 	}
 
 	@Override
@@ -27,6 +35,6 @@ public class algeaArmDown extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return true;
+		return false;
 	}
 }

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -15,9 +16,11 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class algaeArm extends SubsystemBase {
-	private SparkMax algeaArm = new SparkMax(19, MotorType.kBrushless);
+	private SparkMax algeaArm = new SparkMax(14, MotorType.kBrushless);
 	
 	private SparkClosedLoopController closedLoopController = algeaArm.getClosedLoopController();
+
+	private RelativeEncoder encoder = algeaArm.getEncoder();
 
 	private double feedForward = 0.1;
 
@@ -25,16 +28,18 @@ public class algaeArm extends SubsystemBase {
 		SparkMaxConfig algeaArmConfig = new SparkMaxConfig();
 
 		algeaArmConfig
-			.smartCurrentLimit(20)
+			.smartCurrentLimit(9)
 			.idleMode(IdleMode.kBrake);
 
 		algeaArmConfig.closedLoop
 			.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-			.p(0.01)
+			.p(0.015)
 			.d(0)
-			.outputRange(-0.5, 0.5);
+			.outputRange(-1, 1);
 
 		algeaArm.configure(algeaArmConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+		encoder.setPosition(0);
 	}
 
 	@Override
