@@ -24,7 +24,7 @@ public class algeaArmControl extends Command {
 
 	@Override
 	public void execute() {
-		double position = 0 - 35 * trigger.getAsDouble();
+		double position = 0 - 38 * trigger.getAsDouble();
 		m_Algearm.updateTargetAngle(position);
 
 	}

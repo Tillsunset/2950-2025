@@ -13,7 +13,7 @@ public class elevatorFeed extends Command {
 
 	@Override
 	public void initialize() {
-		m_elevator.updateTargetPosition(10);
+		m_elevator.updateTargetPosition(0);
 	}
 
 	@Override
