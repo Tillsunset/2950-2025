@@ -14,7 +14,7 @@ public class algeaOut extends Command {
 
 	@Override
 	public void initialize() {
-		m_algeaIntake.setOutput(-1.);
+		m_algeaIntake.setOutput(-0.5);
 	}
 
 	@Override

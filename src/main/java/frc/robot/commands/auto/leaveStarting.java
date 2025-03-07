@@ -4,12 +4,12 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class leaveStartingLine extends Command {
+public class leaveStarting extends Command {
 	private final driveTrain m_driveTrain;
 
 	private Timer m_timer;  
 	
-	public leaveStartingLine(driveTrain driveTrain) {
+	public leaveStarting(driveTrain driveTrain) {
 		m_driveTrain = driveTrain;
 		addRequirements(m_driveTrain);
 		m_timer = new Timer();
@@ -34,6 +34,6 @@ public class leaveStartingLine extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return m_timer.get() > 2;
+		return m_timer.get() > 4;
 	}
 }

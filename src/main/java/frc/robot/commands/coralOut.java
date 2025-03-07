@@ -14,7 +14,7 @@ public class coralOut extends Command {
 
 	@Override
 	public void initialize() {
-		m_coralIntake.setOutput(-1.);
+		m_coralIntake.setOutput(-1);
 	}
 
 	@Override

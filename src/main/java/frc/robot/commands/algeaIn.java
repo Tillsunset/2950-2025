@@ -23,7 +23,7 @@ public class algeaIn extends Command {
 
 	@Override
 	public void end(boolean interrupted) {
-		m_algeaIntake.setOutput(0);
+		m_algeaIntake.setOutput(0.1);
 	}
 
 	@Override

@@ -30,7 +30,6 @@ public class driveTank extends Command {
 	public void execute() {
 		if (Math.abs(flipFront.getAsDouble()) > 0.1) {
 			m_driveTrain.driveBase.tankDrive(-scale * rightAxis.getAsDouble(), -scale * leftAxis.getAsDouble());
-
 		}
 		else {
 			m_driveTrain.driveBase.tankDrive(scale * leftAxis.getAsDouble(), scale * rightAxis.getAsDouble());

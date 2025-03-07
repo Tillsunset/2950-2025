@@ -14,20 +14,21 @@ public class RobotContainer {
 	private SendableChooser<Command> m_chooser = new SendableChooser<>();
 
 	private CommandXboxController adaptive = new CommandXboxController(0);
-	private Trigger adaptiveDown = adaptive.povDown();
-	private Trigger adaptiveLeft = adaptive.povLeft();
-	private Trigger adaptiveUp = adaptive.povUp();
-	private Trigger adaptiveRight = adaptive.povRight();
-    private Trigger adaptiveA = adaptive.a();
-	private Trigger adaptiveB = adaptive.b();
-	private Trigger adaptiveStart = adaptive.x();
-	private Trigger adaptiveSelect = adaptive.y();
+	private Trigger adaptiveDown = 				adaptive.povDown();
+	private Trigger adaptiveLeft = 				adaptive.povLeft();
+	private Trigger adaptiveUp = 				adaptive.povUp();
+	private Trigger adaptiveRight = 			adaptive.povRight();
+    private Trigger adaptiveA = 				adaptive.a();
+	private Trigger adaptiveB = 				adaptive.b();
+	private Trigger adaptiveStart = 				adaptive.start();
+	private Trigger adaptiveSelect = 				adaptive.back();
 
 	private CommandXboxController green = new CommandXboxController(1);
-	private Trigger greenRB = green.rightBumper();
-	private Trigger greenLB = green.leftBumper();
-	// private Trigger ltTrigger = green.leftTrigger(); //used for front flip
-	// private Trigger rTrigger = green.rightTrigger(); //used for AlgaeArm
+	private Trigger greenRB = 					green.rightBumper();
+	private Trigger greenLB = 					green.leftBumper();
+	private Trigger greenA = 					green.a();
+	// private Trigger ltTrigger = purple.leftTrigger(); //used for front flip
+	// private Trigger rTrigger = purple.rightTrigger(); //used for AlgaeArm
 
 	private driveTrain m_driveTrain = new driveTrain();
 	private coralIntake m_coralIntake = new coralIntake();
@@ -55,21 +56,24 @@ public class RobotContainer {
 	private winchUp m_WinchUp = new winchUp(m_Winch);
 	private winchDown m_WinchDown = new winchDown(m_Winch);
 
-	private leaveStartingLine m_leave = new leaveStartingLine(m_driveTrain);
+	private leaveStarting m_leave = new leaveStarting(m_driveTrain);
+	private leaveScoreCoralL2 m_leaveScoreL2 = new leaveScoreCoralL2(m_driveTrain, m_elevator, m_coralIntake);
+	private leaveScoreCoralL3 m_leaveScoreL3 = new leaveScoreCoralL3(m_driveTrain, m_elevator, m_coralIntake);
 
 	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_empty);
 
 	public RobotContainer() {
 		m_chooser.setDefaultOption("nothing", null);
 		m_chooser.addOption("Leave Starting", m_leave);
-		// m_chooser.addOption("Leave Score L2", m_LeaveScoreL2);
-		// m_chooser.addOption("Leave Score L3", m_LeaveScoreL3);
+		m_chooser.addOption("Leave Score L2", m_leaveScoreL2);
+		m_chooser.addOption("Leave Score L3", m_leaveScoreL3);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
 
 		m_driveTrain.setDefaultCommand(m_driveTank);
 		m_algeaArm.setDefaultCommand(m_algeaArmControl);
 		m_empty.setDefaultCommand(m_align);
+
 
 		configureBindings();
 	}
@@ -88,6 +92,8 @@ public class RobotContainer {
 
 		greenLB.whileTrue(m_AlgeaIn);
 		greenRB.whileTrue(m_AlgeaOut);
+
+		greenA.whileTrue(m_align);
 	}
 
 	public Command getAutonomousCommand() {
