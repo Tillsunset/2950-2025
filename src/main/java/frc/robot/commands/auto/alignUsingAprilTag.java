@@ -20,17 +20,6 @@ public class alignUsingAprilTag extends Command {
 	double sideOError;
 	double kPSide = 1.;
 
-	double upanddownGoal = 0.0;
-	double upanddownDistance;
-	double upanddownError;
-	double KPupanddown = 1.;
-
-	double earthgoal = 0.0;
-	double earthDistance;
-	double earthError;
-	double KPearth = 1.;
-
-
 	double tv = 0;
 
 	public alignUsingAprilTag(driveTrain empty) {
@@ -58,13 +47,10 @@ public class alignUsingAprilTag extends Command {
 
 			forwardDistance = pose.getZ();
 			sideDistance = pose.getX();
-			upanddownDistance = pose.getY();
 		 
 
 			forwardError = forwardDistance - forwardGoal;
 			sideOError = sideDistance - sideGoal;
-			upanddownError = upanddownDistance - upanddownGoal;
-
 
 
 			double yaw = pose.getRotation().getZ();
