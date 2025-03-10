@@ -7,11 +7,28 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
+import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class driveTrain extends SubsystemBase {
-	
+
+	/*****************Position estimate variables**********************/
+	public double motorToVelocity = 8.45 * Math.PI * 6 / 39.37;
+	public double posX, posY;
+	public double linearVel, prevLinearVel;
+
+	private double prevLeftWheelVel = 0.0, prevRightWheelVel = 0.0;  // Previous wheel velocities for trapezoidal integration
+	private double filteredLeftVel = 0.0, filteredRightVel = 0.0;  // Low-pass filtered velocities
+
+	private static final double ALPHA = 0.8;  // Low-pass filter coefficient
+
+	public double filteredyaw; // Smoothed gyro heading
+	private static final double BETA = 0.8;  // Low-pass filter coefficient
+
+	ADIS16470_IMU IMU = new ADIS16470_IMU();
+	/*****************Position estimate variables**********************/
+
 	public SparkMax right = new SparkMax(2, MotorType.kBrushed);
 	public SparkMax left = new SparkMax(4, MotorType.kBrushed);
 	public DifferentialDrive driveBase = new DifferentialDrive(left, right);
@@ -56,9 +73,55 @@ public class driveTrain extends SubsystemBase {
 
 		left.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		right.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+		
+		IMU.calibrate();
+		resetPos();
 	}
 
 	@Override
 	public void periodic() {
+		updatePos();
+		System.out.print("X position: ");
+		System.out.printf("%.2f\n", posX);
+
+		System.out.print("Y position: ");
+		System.out.printf("%.2f\n", posY);
+
+		// System.out.print("linear veloctiy: ");
+		// System.out.printf("%.2f\n", linearVel);
+
+
+		System.out.print("heading: ");
+		System.out.printf("%.2f\n", filteredyaw);
+	}
+	
+	private void updatePos() {
+
+		double dt = 0.02;
+
+		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
+
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.get() * motorToVelocity;
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.get() * motorToVelocity;
+
+        // Compute linear and angular velocity using trapezoidal integration
+        double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
+		
+		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(filteredyaw) * dt;
+        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(filteredyaw) * dt;
+
+		// Store previous wheel velocities for next step
+		prevLeftWheelVel = filteredLeftVel;
+		prevRightWheelVel = filteredRightVel;
+		prevLeftWheelVel = linearVel;
+	}
+
+	public void resetPos() {
+		posX = 0.0;
+        posY = 0.0;
+		filteredyaw = 0.0;
+		linearVel = 0.0;
+		IMU.reset();
 	}
 }

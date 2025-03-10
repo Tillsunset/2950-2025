@@ -74,7 +74,7 @@ public class RobotContainer {
 
 		m_driveTrain.setDefaultCommand(m_driveTank);
 		m_algeaArm.setDefaultCommand(m_algeaArmControl);
-		m_empty.setDefaultCommand(m_accelGyro);
+		// m_empty.setDefaultCommand(m_accelGyro);
 
 		configureBindings();
 	}

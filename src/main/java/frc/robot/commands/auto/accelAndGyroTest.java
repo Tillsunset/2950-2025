@@ -6,72 +6,43 @@ import frc.robot.subsystems.empty;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class accelAndGyroTest extends Command {
 	private final driveTrain m_driveTrain;
 
-	/*****************Position estimate variables**********************/
-
-	private double motorToVelocity = 8.45 * Math.PI * 6 / 39.37;
-	private double wheelBase = .65;  // Distance between left and right wheels
-	private double posX, posY;
-	private double linearVel, prevLinearVel;
-
-    private double prevLeftWheelVel = 0.0, prevRightWheelVel = 0.0;  // Previous wheel velocities for trapezoidal integration
-    private double filteredLeftVel = 0.0, filteredRightVel = 0.0;  // Low-pass filtered velocities
-
-    private static final double ALPHA = 0.8;  // Low-pass filter coefficient
-
-    private double filteredyaw; // Smoothed gyro heading
-    private static final double BETA = 0.8;  // Low-pass filter coefficient
-	/*****************Position estimate variables**********************/
-
 	/*******************Stanley Control variables**********************/
 	private double k = 0.5;
     private double kSoft = 0.001;
-    private double maxSteer = Math.toRadians(30);
-    private double steerKp = 0.5;
+    private double maxSteer = Math.toRadians(20);
+    private double steerKp = 1;
+	private double powerKp = 2;
+	int nearestIdx = 0;
+
 
 	List<double[]> waypoints = Arrays.asList(
-		new double[]{1, 1},
-		new double[]{1.1, 1.1}
+		new double[]{0, 0},
+		new double[]{0.1, 1},
+		new double[]{0, 2}
+
 	);
 	/*******************Stanley Control variables**********************/
 
-	ADIS16470_IMU IMU = new ADIS16470_IMU();
-
 	public accelAndGyroTest(driveTrain driveTrain) {
-		IMU.calibrate();
 		m_driveTrain = driveTrain;
-		// addRequirements(driveTrain);
+		addRequirements(driveTrain);
 	}
 
 	@Override
 	public void initialize() {
-		resetPos();
+		// m_driveTrain.resetPos();
 	}
 
 	@Override
 	public void execute() {
 
-		updatePos();
-		System.out.print("X position: ");
-		System.out.printf("%.2f\n", posX);
-
-		System.out.print("Y position: ");
-		System.out.printf("%.2f\n", posY);
-
-		System.out.print("linear veloctiy: ");
-		System.out.printf("%.2f\n", linearVel);
-
-
-		System.out.print("heading: ");
-		System.out.printf("%.2f\n", filteredyaw);
-
-		// double steer = computeControl(posX, posY, filteredyaw, normalize(velX, velY), waypoints);
-		// computeMotorPower(0.5, steer);
+		double steer = computeControl(m_driveTrain.posX, m_driveTrain.posY, m_driveTrain.filteredyaw, m_driveTrain.filteredyaw, waypoints);
+		computeMotorPower(0.5, steer);
 	}
 
 	@Override
@@ -80,7 +51,7 @@ public class accelAndGyroTest extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return false;
+		return nearestIdx == (waypoints.size() - 1);
 	}
 
 	private double normalize(double x, double y) {
@@ -89,7 +60,7 @@ public class accelAndGyroTest extends Command {
 
 	private double computeControl(double x, double y, double yaw, double v, List<double[]> waypoints) {
         double minDist = Double.MAX_VALUE;
-        int nearestIdx = 0;
+        // int nearestIdx = 0;
         
         for (int i = 0; i < waypoints.size(); i++) {
             double dx = waypoints.get(i)[0] - x;
@@ -117,36 +88,15 @@ public class accelAndGyroTest extends Command {
         return Math.max(-maxSteer, Math.min(maxSteer, steer));
     }
 
-	public void computeMotorPower(double steer, double v) {
+	public void computeMotorPower(double v, double steer) {
 		double zRotation = steer * steerKp;
-		// m_driveTrain.driveBase.arcadeDrive(v, zRotation, false)
+		double motorPower = powerKp* v/m_driveTrain.motorToVelocity;
+
+		System.out.print("steer");
+		System.out.println(zRotation);
+		System.out.print("motorPower");
+		System.out.println(motorPower);
+
+		m_driveTrain.driveBase.arcadeDrive(motorPower, zRotation, false);
     }
-
-	private void updatePos() {
-
-		double dt = 0.02;
-
-		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
-
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * m_driveTrain.left.get() * motorToVelocity;
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * m_driveTrain.right.get() * motorToVelocity;
-
-        // Compute linear and angular velocity using trapezoidal integration
-        double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
-		
-		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(filteredyaw) * dt;
-        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(filteredyaw) * dt;
-
-		// Store previous wheel velocities for next step
-		prevLeftWheelVel = filteredLeftVel;
-		prevRightWheelVel = filteredRightVel;
-		prevLeftWheelVel = linearVel;
-	}
-
-	private void resetPos() {
-		posX = 0.0;
-        posY = 0.0;
-		filteredyaw = 0.0;
-		linearVel = 0.0;
-	}
 }
