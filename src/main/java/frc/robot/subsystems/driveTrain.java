@@ -11,10 +11,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class driveTrain extends SubsystemBase {
-
 	
-	private SparkMax right = new SparkMax(2, MotorType.kBrushed);
-	private SparkMax left = new SparkMax(4, MotorType.kBrushed);
+	public SparkMax right = new SparkMax(2, MotorType.kBrushed);
+	public SparkMax left = new SparkMax(4, MotorType.kBrushed);
 	public DifferentialDrive driveBase = new DifferentialDrive(left, right);
 
 	private SparkMax driveFR = new SparkMax(16, MotorType.kBrushless);

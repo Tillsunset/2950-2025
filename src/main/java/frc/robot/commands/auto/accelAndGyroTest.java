@@ -1,6 +1,6 @@
 package frc.robot.commands.auto;
 
-import frc.robot.LimelightHelpers;
+import frc.robot.subsystems.driveTrain;
 import frc.robot.subsystems.empty;
 
 import java.util.Arrays;
@@ -10,18 +10,22 @@ import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class accelAndGyroTest extends Command {
-	private final empty m_driveTrain;
+	private final driveTrain m_driveTrain;
 
 	/*****************Position estimate variables**********************/
-	private double posX, posY;  // Position (x, y)
-    private double velX, velY;  // Velocity (x, y)
-	private double prevAccelX, prevAccelY;
-    private double filteredAccelX, filteredAccelY;  // Smoothed acceleration values
-    private double filteredyaw; // Smoothed gyro heading
+
+	private double motorToVelocity = 8.45 * Math.PI * 6 / 39.37;
+	private double wheelBase = .65;  // Distance between left and right wheels
+	private double posX, posY;
+	private double linearVel, prevLinearVel;
+
+    private double prevLeftWheelVel = 0.0, prevRightWheelVel = 0.0;  // Previous wheel velocities for trapezoidal integration
+    private double filteredLeftVel = 0.0, filteredRightVel = 0.0;  // Low-pass filtered velocities
+
     private static final double ALPHA = 0.8;  // Low-pass filter coefficient
+
+    private double filteredyaw; // Smoothed gyro heading
     private static final double BETA = 0.8;  // Low-pass filter coefficient
-	private static final double g = 9.81; // G
-	private static final double drag = .98; // drag to reduce steady state error accumulation
 	/*****************Position estimate variables**********************/
 
 	/*******************Stanley Control variables**********************/
@@ -38,10 +42,10 @@ public class accelAndGyroTest extends Command {
 
 	ADIS16470_IMU IMU = new ADIS16470_IMU();
 
-	public accelAndGyroTest(empty driveTrain) {
+	public accelAndGyroTest(driveTrain driveTrain) {
 		IMU.calibrate();
 		m_driveTrain = driveTrain;
-		addRequirements(driveTrain);
+		// addRequirements(driveTrain);
 	}
 
 	@Override
@@ -55,17 +59,13 @@ public class accelAndGyroTest extends Command {
 		updatePos();
 		System.out.print("X position: ");
 		System.out.printf("%.2f\n", posX);
-		System.out.print("X veloctiy: ");
-		System.out.printf("%.2f\n", velX);
-		System.out.print("X accel: ");
-		System.out.printf("%.2f\n", filteredAccelX);
 
 		System.out.print("Y position: ");
 		System.out.printf("%.2f\n", posY);
-		System.out.print("Y veloctiy: ");
-		System.out.printf("%.2f\n", velY);
-		System.out.print("Y accel: ");
-		System.out.printf("%.2f\n", filteredAccelY);
+
+		System.out.print("linear veloctiy: ");
+		System.out.printf("%.2f\n", linearVel);
+
 
 		System.out.print("heading: ");
 		System.out.printf("%.2f\n", filteredyaw);
@@ -128,47 +128,25 @@ public class accelAndGyroTest extends Command {
 
 		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		double accelX = IMU.getAccelX();
-		double accelY = IMU.getAccelY();
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * m_driveTrain.left.get() * motorToVelocity;
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * m_driveTrain.right.get() * motorToVelocity;
 
-		double gX = -.15;
-		double gY = .18;
+        // Compute linear and angular velocity using trapezoidal integration
+        double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
 		
-		accelX += gX;
-		accelY += gY;
+		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(filteredyaw) * dt;
+        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(filteredyaw) * dt;
 
-        filteredAccelX = ALPHA * filteredAccelX + (1 - ALPHA) * accelX;
-        filteredAccelY = ALPHA * filteredAccelY + (1 - ALPHA) * accelY;
-		
-        // Rotate filtered acceleration into world frame
-        double worldAccelX = filteredAccelX * Math.cos(filteredyaw) - filteredAccelY * Math.sin(filteredyaw);
-        double worldAccelY = filteredAccelX * Math.sin(filteredyaw) + filteredAccelY * Math.cos(filteredyaw);
-
-        // Trapezoidal Integrate acceleration to update velocity
-		velX += 0.5 * (prevAccelX + worldAccelX) * dt;
-		velY += 0.5 * (prevAccelY + worldAccelY) * dt;
-
-		velX *= drag;
-		velY *= drag;
-
-        // Integrate velocity to update position
-        posX += velX * dt;
-        posY += velY * dt;
-
-		// Update previous acceleration values
-		prevAccelX = worldAccelX;
-		prevAccelY = worldAccelY;
+		// Store previous wheel velocities for next step
+		prevLeftWheelVel = filteredLeftVel;
+		prevRightWheelVel = filteredRightVel;
+		prevLeftWheelVel = linearVel;
 	}
 
 	private void resetPos() {
 		posX = 0.0;
         posY = 0.0;
-        velX = 0.0;
-        velY = 0.0;
-		prevAccelX = 0.0;
-		prevAccelY = 0.0;
-		filteredAccelX = 0.0;
-		filteredAccelY = 0.0;
 		filteredyaw = 0.0;
+		linearVel = 0.0;
 	}
 }

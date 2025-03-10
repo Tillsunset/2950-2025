@@ -62,7 +62,7 @@ public class RobotContainer {
 	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 
 	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_driveTrain);
-	private accelAndGyroTest m_accelGyro = new accelAndGyroTest(m_empty);
+	private accelAndGyroTest m_accelGyro = new accelAndGyroTest(m_driveTrain);
 
 	public RobotContainer() {
 		m_chooser.setDefaultOption("nothing", null);
