@@ -1,29 +1,27 @@
 package frc.robot.commands.auto;
 
 import frc.robot.LimelightHelpers;
-import frc.robot.subsystems.driveTrain;
+import frc.robot.subsystems.empty;
 
 import java.util.Arrays;
 import java.util.List;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class accelAndGyroTest extends Command {
-	private final driveTrain m_driveTrain;
+	private final empty m_driveTrain;
 
 	/*****************Position estimate variables**********************/
 	private double posX, posY;  // Position (x, y)
     private double velX, velY;  // Velocity (x, y)
 	private double prevAccelX, prevAccelY;
     private double filteredAccelX, filteredAccelY;  // Smoothed acceleration values
-	private double gyroHeading;
-    private double prevGyroRate;
-    private double filteredGyroHeading; // Smoothed gyro heading
+    private double filteredyaw; // Smoothed gyro heading
     private static final double ALPHA = 0.8;  // Low-pass filter coefficient
     private static final double BETA = 0.8;  // Low-pass filter coefficient
+	private static final double g = 9.81; // G
+	private static final double drag = .98; // drag to reduce steady state error accumulation
 	/*****************Position estimate variables**********************/
 
 	/*******************Stanley Control variables**********************/
@@ -38,16 +36,12 @@ public class accelAndGyroTest extends Command {
 	);
 	/*******************Stanley Control variables**********************/
 
-	ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-	BuiltInAccelerometer accel = new BuiltInAccelerometer();
+	ADIS16470_IMU IMU = new ADIS16470_IMU();
 
-
-	double tv = 0;
-
-	public accelAndGyroTest(driveTrain driveTrain) {
+	public accelAndGyroTest(empty driveTrain) {
+		IMU.calibrate();
 		m_driveTrain = driveTrain;
 		addRequirements(driveTrain);
-		LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{1, 17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11});
 	}
 
 	@Override
@@ -57,38 +51,36 @@ public class accelAndGyroTest extends Command {
 
 	@Override
 	public void execute() {
-		if (LimelightHelpers.getTV("")) {
-			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
-			System.out.println("found AprilTag");
-			System.out.print("distance: ");
-			System.out.println(pose.getZ());
-			System.out.print("offset: ");
-			System.out.println(pose.getX());
-			
-			// pose.getRotation().
-		}
-		else {
-			System.out.println("not found");
-		}
 
 		updatePos();
 		System.out.print("X position: ");
-		System.out.println(posX);
+		System.out.printf("%.2f\n", posX);
+		System.out.print("X veloctiy: ");
+		System.out.printf("%.2f\n", velX);
+		System.out.print("X accel: ");
+		System.out.printf("%.2f\n", filteredAccelX);
+
 		System.out.print("Y position: ");
-		System.out.println(posY);
-		// double steer = computeControl(posX, posY, filteredGyroHeading, normalize(velX, velY), waypoints);
+		System.out.printf("%.2f\n", posY);
+		System.out.print("Y veloctiy: ");
+		System.out.printf("%.2f\n", velY);
+		System.out.print("Y accel: ");
+		System.out.printf("%.2f\n", filteredAccelY);
+
+		System.out.print("heading: ");
+		System.out.printf("%.2f\n", filteredyaw);
+
+		// double steer = computeControl(posX, posY, filteredyaw, normalize(velX, velY), waypoints);
 		// computeMotorPower(0.5, steer);
 	}
 
 	@Override
 	public void end(boolean interrupted) {
-		m_driveTrain.driveBase.stopMotor();
 	}
 
 	@Override
 	public boolean isFinished() {
-		int lastIdx = waypoints.size() - 1;
-		return normalize(posX - waypoints.get(lastIdx)[0], posY - waypoints.get(lastIdx)[1]) < 0.5;
+		return false;
 	}
 
 	private double normalize(double x, double y) {
@@ -127,34 +119,37 @@ public class accelAndGyroTest extends Command {
 
 	public void computeMotorPower(double steer, double v) {
 		double zRotation = steer * steerKp;
-		m_driveTrain.driveBase.arcadeDrive(v, zRotation, false);
+		// m_driveTrain.driveBase.arcadeDrive(v, zRotation, false)
     }
 
 	private void updatePos() {
 
 		double dt = 0.02;
 
-		// double filteredGyroRate = BETA * prevGyroRate + (1 - BETA) * gyro.getRate();
-		// gyroHeading += 0.5 * (prevGyroRate + filteredGyroRate) * dt;
-		// prevGyroRate = filteredGyroRate;
-		gyroHeading = Math.toRadians(gyro.getAngle());
+		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		filteredGyroHeading = BETA * filteredGyroHeading + (1 - BETA) * gyroHeading;
-	
-		double accelX = accel.getX();
-		double accelY = accel.getY();
+		double accelX = IMU.getAccelX();
+		double accelY = IMU.getAccelY();
+
+		double gX = -.15;
+		double gY = .18;
+		
+		accelX += gX;
+		accelY += gY;
 
         filteredAccelX = ALPHA * filteredAccelX + (1 - ALPHA) * accelX;
         filteredAccelY = ALPHA * filteredAccelY + (1 - ALPHA) * accelY;
 		
-
         // Rotate filtered acceleration into world frame
-        double worldAccelX = filteredAccelX * Math.cos(filteredGyroHeading) - filteredAccelY * Math.sin(filteredGyroHeading);
-        double worldAccelY = filteredAccelX * Math.sin(filteredGyroHeading) + filteredAccelY * Math.cos(filteredGyroHeading);
+        double worldAccelX = filteredAccelX * Math.cos(filteredyaw) - filteredAccelY * Math.sin(filteredyaw);
+        double worldAccelY = filteredAccelX * Math.sin(filteredyaw) + filteredAccelY * Math.cos(filteredyaw);
 
         // Trapezoidal Integrate acceleration to update velocity
 		velX += 0.5 * (prevAccelX + worldAccelX) * dt;
 		velY += 0.5 * (prevAccelY + worldAccelY) * dt;
+
+		velX *= drag;
+		velY *= drag;
 
         // Integrate velocity to update position
         posX += velX * dt;
@@ -174,7 +169,6 @@ public class accelAndGyroTest extends Command {
 		prevAccelY = 0.0;
 		filteredAccelX = 0.0;
 		filteredAccelY = 0.0;
-		prevGyroRate = 0.0;
-		filteredGyroHeading = 0.0;
+		filteredyaw = 0.0;
 	}
 }

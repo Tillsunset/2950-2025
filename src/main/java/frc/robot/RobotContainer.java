@@ -62,7 +62,7 @@ public class RobotContainer {
 	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 
 	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_driveTrain);
-	private accelAndGyroTest m_accelGyro = new accelAndGyroTest(m_driveTrain);
+	private accelAndGyroTest m_accelGyro = new accelAndGyroTest(m_empty);
 
 	public RobotContainer() {
 		m_chooser.setDefaultOption("nothing", null);
@@ -74,7 +74,7 @@ public class RobotContainer {
 
 		m_driveTrain.setDefaultCommand(m_driveTank);
 		m_algeaArm.setDefaultCommand(m_algeaArmControl);
-		// m_empty.setDefaultCommand(m_align);
+		m_empty.setDefaultCommand(m_accelGyro);
 
 		configureBindings();
 	}
