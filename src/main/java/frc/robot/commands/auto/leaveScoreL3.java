@@ -4,14 +4,14 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class leaveScoreCoralL3 extends Command {
+public class leaveScoreL3 extends Command {
 	private final driveTrain m_driveTrain;
 	private final elevator m_elevator;
 	private final coralIntake m_coralIntake;
 
 	private Timer m_timer;  
 	
-	public leaveScoreCoralL3(driveTrain driveTrain, elevator elevator, coralIntake coralIntake) {
+	public leaveScoreL3(driveTrain driveTrain, elevator elevator, coralIntake coralIntake) {
 		m_driveTrain = driveTrain;
 		m_elevator = elevator;
 		m_coralIntake = coralIntake;

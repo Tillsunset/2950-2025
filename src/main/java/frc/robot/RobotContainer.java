@@ -57,10 +57,10 @@ public class RobotContainer {
 	private winchDown m_WinchDown = new winchDown(m_Winch);
 
 	private leaveStarting m_leave = new leaveStarting(m_driveTrain);
-	private leaveScoreCoralL2 m_leaveScoreL2 = new leaveScoreCoralL2(m_driveTrain, m_elevator, m_coralIntake);
-	private leaveScoreCoralL3 m_leaveScoreL3 = new leaveScoreCoralL3(m_driveTrain, m_elevator, m_coralIntake);
+	private leaveScoreL2 m_leaveScoreL2 = new leaveScoreL2(m_driveTrain, m_elevator, m_coralIntake);
+	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 
-	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_empty);
+	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_driveTrain);
 
 	public RobotContainer() {
 		m_chooser.setDefaultOption("nothing", null);
@@ -72,8 +72,7 @@ public class RobotContainer {
 
 		m_driveTrain.setDefaultCommand(m_driveTank);
 		m_algeaArm.setDefaultCommand(m_algeaArmControl);
-		m_empty.setDefaultCommand(m_align);
-
+		// m_empty.setDefaultCommand(m_align);
 
 		configureBindings();
 	}
