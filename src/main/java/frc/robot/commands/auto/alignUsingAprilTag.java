@@ -2,9 +2,7 @@ package frc.robot.commands.auto;
 
 import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.driveTrain;
-import frc.robot.subsystems.empty;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class alignUsingAprilTag extends Command {
