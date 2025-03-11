@@ -12,7 +12,7 @@ public class driveTank extends Command {
 	private DoubleSupplier leftAxis;
 	private DoubleSupplier rightAxis;
 	private DoubleSupplier flipFront;
-	private double scale = -0.5;
+	private double scale = -0.75;
 
 	public driveTank(driveTrain driveTrain, XboxController x) {
 		leftAxis = x::getLeftY;

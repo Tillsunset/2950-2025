@@ -1,65 +1,56 @@
 package frc.robot.commands.auto;
 
 import frc.robot.subsystems.driveTrain;
-import frc.robot.subsystems.empty;
+import frc.robot.Pose;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
-class Pose {
-    double x, y, yaw;
 
-    public Pose(double x, double y, double yaw) {
-        this.x = x;
-        this.y = y;
-        this.yaw = yaw;
-    }
-}
-
-public class accelAndGyroTest extends Command {
+public class StanleyTest extends Command {
 	private final driveTrain m_driveTrain;
 
 	/*******************Stanley Control variables**********************/
 	private double k = 0.5;
     private double kSoft = 0.001;
-    private double maxSteer = Math.toRadians(20);
-    private double steerKp = 1;
-	private double powerKp = 2;
+    private double maxSteer = Math.toRadians(30);
+    private double steerKp = .5;
+	private double powerKp = 0.3;
 	int nearestIdx = 0;
 
-	List<Pose> waypoints;
+	List<Pose> waypoints = new ArrayList<>();
+
+    Pose start = new Pose(0, 0, 0);
+    Pose goal = new Pose(1, 0.0, 0);
+    double motorPower = 1;
+    double timeStep = 0.2;
 	/*******************Stanley Control variables**********************/
 
-	public accelAndGyroTest(driveTrain driveTrain) {
+	public StanleyTest(driveTrain driveTrain) {
 		m_driveTrain = driveTrain;
 		addRequirements(driveTrain);
 	}
 
 	@Override
 	public void initialize() {
-		// m_driveTrain.resetPos();
-
-        Pose start = new Pose(0, 0, 0);
-        Pose goal = new Pose(5, 5, Math.PI / 2);
-        double maxVelocity = 1.0;
-        double timeStep = 0.1;
-        double maxAngularRate = Math.toRadians(30);
-		waypoints = interpolateTowardsEachOther(start, goal, maxVelocity, timeStep, maxAngularRate);
-
+		m_driveTrain.resetPos();
+		waypoints = interpolateTowardsEachOther(start, goal, motorPower, timeStep, maxSteer);
+        System.gc();
 	}
 
 	@Override
 	public void execute() {
-
-		double steer = computeControl(m_driveTrain.posX, m_driveTrain.posY, m_driveTrain.filteredyaw, m_driveTrain.filteredyaw, waypoints);
-		computeMotorPower(0.5, steer);
+		double steer = computeControl(m_driveTrain.posX, m_driveTrain.posY, m_driveTrain.filteredyaw, motorPower, waypoints);
+		computeMotorPower(1, steer);
 	}
 
 	@Override
 	public void end(boolean interrupted) {
+        m_driveTrain.driveBase.stopMotor();
+        waypoints.clear();
+        System.gc();
 	}
 
 	@Override
@@ -73,12 +64,9 @@ public class accelAndGyroTest extends Command {
 
 	private double computeControl(double x, double y, double yaw, double v, List<Pose> waypoints) {
         double minDist = Double.MAX_VALUE;
-        // int nearestIdx = 0;
         
         for (int i = 0; i < waypoints.size(); i++) {
-            double dx = waypoints.get(i).x - x;
-            double dy = waypoints.get(i).y - y;
-            double dist = Math.sqrt(dx * dx + dy * dy);
+            double dist = normalize(waypoints.get(i).x - x, waypoints.get(i).y - y);
             if (dist < minDist) {
                 minDist = dist;
                 nearestIdx = i;
@@ -97,23 +85,23 @@ public class accelAndGyroTest extends Command {
         double headingError = pathYaw - yaw;
         headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
         
-        double steer = headingError + Math.atan2(k * crossTrackError, (kSoft + v));
+        double steer = headingError + Math.atan2(k * crossTrackError, (kSoft + v * driveTrain.motorToVelocity));
         return Math.max(-maxSteer, Math.min(maxSteer, steer));
     }
 
-	public void computeMotorPower(double v, double steer) {
-		double zRotation = steer * steerKp;
-		double motorPower = powerKp* v/m_driveTrain.motorToVelocity;
+	public void computeMotorPower(double motorPower, double steer) {
+		double zRotation = steerKp * steer;
+		double xSpeed = powerKp * motorPower;
 
 		System.out.print("steer");
 		System.out.println(zRotation);
 		System.out.print("motorPower");
-		System.out.println(motorPower);
+		System.out.println(xSpeed);
 
-		m_driveTrain.driveBase.arcadeDrive(motorPower, zRotation, false);
+		m_driveTrain.driveBase.arcadeDrive(xSpeed, zRotation, false);
     }
 
-	public static List<Pose> interpolateTowardsEachOther(Pose start, Pose goal, double maxVelocity, double timeStep, double maxAngularRate) {
+	public static List<Pose> interpolateTowardsEachOther(Pose start, Pose goal, double motorPower, double timeStep, double maxAngularRate) {
         List<Pose> pathStart = new ArrayList<>();
         List<Pose> pathGoal = new ArrayList<>();
         
@@ -123,14 +111,14 @@ public class accelAndGyroTest extends Command {
         Pose currentStart = start;
         Pose currentGoal = goal;
         
-        while (distance(currentStart, currentGoal) > maxVelocity * timeStep) {
+        while (distance(currentStart, currentGoal) > motorPower * driveTrain.motorToVelocity * timeStep) {
             // Compute direction vectors
             double startDirX = Math.cos(currentStart.yaw);
             double startDirY = Math.sin(currentStart.yaw);
             double goalDirX = Math.cos(currentGoal.yaw);
             double goalDirY = Math.sin(currentGoal.yaw);
             
-            double stepSize = maxVelocity * timeStep;
+            double stepSize = motorPower * timeStep;
             
             // Compute new positions
             Pose newStart = new Pose(
@@ -164,9 +152,15 @@ public class accelAndGyroTest extends Command {
         for (int i = pathGoal.size() - 2; i >= 0; i--) {
             fullPath.add(pathGoal.get(i));
         }
+
+        pathStart.clear();
+        pathGoal.clear();
         
         // Remove redundant points
-        return removeRedundantPoints(fullPath);
+        List<Pose> outPath = removeRedundantPoints(fullPath);
+
+        fullPath.clear();
+        return outPath;
     }
 
     private static double distance(Pose a, Pose b) {
@@ -198,6 +192,7 @@ public class accelAndGyroTest extends Command {
         }
         
         filteredPath.add(path.get(path.size() - 1));
+        path.clear();
         return filteredPath;
     }
 }

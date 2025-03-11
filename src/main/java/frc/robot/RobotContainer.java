@@ -28,6 +28,7 @@ public class RobotContainer {
 	private Trigger greenLB = 					green.leftBumper();
 	private Trigger greenA = 					green.a();
 	private Trigger greenB = 					green.b();
+	private Trigger greenX = 					green.x();
 	// private Trigger ltTrigger = purple.leftTrigger(); //used for front flip
 	// private Trigger rTrigger = purple.rightTrigger(); //used for AlgaeArm
 
@@ -37,7 +38,6 @@ public class RobotContainer {
 	private algaeArm m_algeaArm = new algaeArm();
 	private elevator m_elevator = new elevator();
 	private winch m_Winch = new winch();
-	private empty m_empty = new empty();
 	
 	private driveTank m_driveTank = new driveTank(m_driveTrain, green.getHID());
 
@@ -61,8 +61,9 @@ public class RobotContainer {
 	private leaveScoreL2 m_leaveScoreL2 = new leaveScoreL2(m_driveTrain, m_elevator, m_coralIntake);
 	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 
-	private alignUsingAprilTag m_align = new alignUsingAprilTag(m_driveTrain);
-	private accelAndGyroTest m_accelGyro = new accelAndGyroTest(m_driveTrain);
+	private AprilTest m_april = new AprilTest(m_driveTrain);
+	// private StanleyTest m_stanley = new StanleyTest(m_driveTrain);
+	private AprilStanleyTest m_aprilStanley = new AprilStanleyTest(m_driveTrain);
 
 	public RobotContainer() {
 		m_chooser.setDefaultOption("nothing", null);
@@ -74,7 +75,6 @@ public class RobotContainer {
 
 		m_driveTrain.setDefaultCommand(m_driveTank);
 		m_algeaArm.setDefaultCommand(m_algeaArmControl);
-		// m_empty.setDefaultCommand(m_accelGyro);
 
 		configureBindings();
 	}
@@ -94,8 +94,9 @@ public class RobotContainer {
 		greenLB.whileTrue(m_AlgeaIn);
 		greenRB.whileTrue(m_AlgeaOut);
 
-		greenA.whileTrue(m_align);
-		greenB.whileTrue(m_accelGyro);
+		greenA.whileTrue(m_april);
+		// greenB.whileTrue(m_stanley);
+		greenX.whileTrue(m_aprilStanley);
 	}
 
 	public Command getAutonomousCommand() {
