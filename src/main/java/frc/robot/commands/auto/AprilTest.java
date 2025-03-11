@@ -6,10 +6,8 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class AprilTest extends Command {
-	// private final empty m_empty;
 	private final driveTrain m_empty;
 
-   
 	double forwardGoal = .1;
 	double forwardDistance;
 	double forwardError;
@@ -19,8 +17,6 @@ public class AprilTest extends Command {
 	double sideDistance;
 	double sideOError;
 	double kPSide = 1.;
-
-	double tv = 0;
 
 	public AprilTest(driveTrain empty) {
 		m_empty = empty;
@@ -42,7 +38,6 @@ public class AprilTest extends Command {
 			System.out.print("offset: ");
 			System.out.println(pose.getX());
 			System.out.println(-pose.getRotation().getY());
-
 		}
 		else {
 			System.out.println("not found");

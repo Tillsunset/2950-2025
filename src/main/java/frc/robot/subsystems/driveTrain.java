@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class driveTrain extends SubsystemBase {
 
 	/*****************Position estimate variables**********************/
-	public static double motorToVelocity = 8.45 * Math.PI * 6 / 39.37;
+	public static double motorToVelocity = 5880. * 3.1415 * 6./(39.37 * 60. * 8.45);
 	public double posX, posY;
 	public double linearVel, prevLinearVel;
 
@@ -82,17 +82,21 @@ public class driveTrain extends SubsystemBase {
 	@Override
 	public void periodic() {
 		updatePos();
-		// System.out.print("X position: ");
-		// System.out.printf("%.2f\n", posX);
+		// printPosVelHead();
+	}
 
-		// System.out.print("Y position: ");
-		// System.out.printf("%.2f\n", posY);
+	private void printPosVelHead() {
+		System.out.print("X position: ");
+		System.out.printf("%.2f\n", posX);
+
+		System.out.print("Y position: ");
+		System.out.printf("%.2f\n", posY);
 
 		// System.out.print("linear veloctiy: ");
 		// System.out.printf("%.2f\n", linearVel);
 
-		// System.out.print("heading: ");
-		// System.out.printf("%.2f\n", filteredyaw);
+		System.out.print("heading: ");
+		System.out.printf("%.2f\n", filteredyaw);
 	}
 	
 	private void updatePos() {

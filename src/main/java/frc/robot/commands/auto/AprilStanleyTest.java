@@ -14,20 +14,23 @@ public class AprilStanleyTest extends Command {
 	private final driveTrain m_driveTrain;
 
 	/*******************Stanley Control variables**********************/
-	private double k = 0.5;
-    private double kSoft = 0.001;
-    private double maxSteer = Math.toRadians(30);
-    private double steerKp = .5;
-	private double powerKp = 0.3;
-	int nearestIdx = 0;
+	private double k = 0.5; // how strongly correct cross error
+    private double maxSteer = Math.toRadians(45);
+    private double steerKp = 1; // tune steering strength
+
+    double motorPower = 0.25;
+	double zRotation = 0;
+	double xSpeed = 0;
+	/*******************Stanley Control variables**********************/
+
+	/*******************Interpolation variables**********************/
+	private static int interpolationPoints = 5;
+
+	Pose current = new Pose(0, 0, 0);
+    Pose goal = new Pose(0, 0, 0);
 
 	List<Pose> waypoints = new ArrayList<>();
-
-    Pose start = new Pose(0, 0, 0);
-    Pose goal = new Pose(1, 0.01, 0);
-    double motorPower = 1;
-    double timeStep = 0.03;
-	/*******************Stanley Control variables**********************/
+	/*******************Interpolation variables**********************/
 
 	public AprilStanleyTest(driveTrain driveTrain) {
 		m_driveTrain = driveTrain;
@@ -37,51 +40,67 @@ public class AprilStanleyTest extends Command {
 	@Override
 	public void initialize() {
 		m_driveTrain.resetPos();
-        waypoints.clear();
-
-        if (LimelightHelpers.getTV("")) {
-			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
-
-            goal.x = pose.getZ();
-            goal.y = pose.getX();
-        }
-    	waypoints = interpolateTowardsEachOther(start, goal, motorPower, timeStep, maxSteer);
-        System.gc();
 	}
 
 	@Override
 	public void execute() {
-		double steer = computeControl(m_driveTrain.posX, m_driveTrain.posY, m_driveTrain.filteredyaw, motorPower, waypoints);
-		computeMotorPower(1, steer);
+		if (LimelightHelpers.getTV("")) {
+			m_driveTrain.resetPos();
+			current.x = 0;
+			current.y = 0;
+			current.yaw = 0;
 
-        // System.out.println("goal positions:");
-        // System.out.println(goal.x);
-        // System.out.println(goal.y);
-        System.out.println("waypoints Numebr:");
-        System.out.println(waypoints.size());
+			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
+            goal.x = pose.getZ();
+            goal.y = pose.getX();
+			goal.yaw = -pose.getRotation().getY();
+
+			// waypoints.clear();
+			waypoints = interpolateAlignedPoints(current, goal, interpolationPoints);
+		}
+		else {
+			current.x = m_driveTrain.posX;
+			current.y = m_driveTrain.posY;
+			current.yaw = m_driveTrain.filteredyaw;
+		}
+
+		if (!waypoints.isEmpty()) {
+			double steer = computeControl(current, waypoints);
+			computeMotorPower(motorPower, steer);
+		}
 	}
 
 	@Override
 	public void end(boolean interrupted) {
         m_driveTrain.driveBase.stopMotor();
-        waypoints.clear();
-        System.gc();
 	}
 
 	@Override
 	public boolean isFinished() {
-		return nearestIdx == (waypoints.size() - 1);
+		return distance(current.x - goal.x, current.y - goal.y) < 0.2;
 	}
 
-	private double normalize(double x, double y) {
+	private void printGoalMotor() {
+		System.out.print("xSpeed: ");
+		System.out.printf("%.2f\n", xSpeed);
+
+		System.out.print("zRotation: ");
+		System.out.printf("%.2f\n", zRotation);
+
+		System.out.print("Goal: ");
+		System.out.printf("%.2f %.2f %.2f\n", goal.x, goal.y, goal.yaw);
+	}
+
+	private double distance(double x, double y) {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
-	private double computeControl(double x, double y, double yaw, double v, List<Pose> waypoints) {
+	private double computeControl(Pose current, List<Pose> waypoints) {
         double minDist = Double.MAX_VALUE;
+		int nearestIdx = 0;
         
         for (int i = 0; i < waypoints.size(); i++) {
-            double dist = normalize(waypoints.get(i).x - x, waypoints.get(i).y - y);
+            double dist = distance(waypoints.get(i).x - current.x, waypoints.get(i).y - current.y);
             if (dist < minDist) {
                 minDist = dist;
                 nearestIdx = i;
@@ -96,118 +115,49 @@ public class AprilStanleyTest extends Command {
             waypoints.get(Math.min(nearestIdx + 1, waypoints.size() - 1)).x - targetX
         );
         
-        double crossTrackError = Math.sin(pathYaw) * (x - targetX) - Math.cos(pathYaw) * (y - targetY);
-        double headingError = pathYaw - yaw;
+        double crossTrackError = Math.sin(pathYaw) * (current.x - targetX) - Math.cos(pathYaw) * (current.y - targetY);
+
+        double headingError = pathYaw - current.yaw;
         headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
         
-        double steer = headingError + Math.atan2(k * crossTrackError, (kSoft + v * driveTrain.motorToVelocity));
-        return Math.max(-maxSteer, Math.min(maxSteer, steer));
+        double stanley_steer = headingError + Math.atan2(k * crossTrackError, (motorPower * driveTrain.motorToVelocity));
+        return clamp(maxSteer, stanley_steer, -maxSteer);
     }
 
-	public void computeMotorPower(double motorPower, double steer) {
-		double zRotation = steerKp * steer;
-		double xSpeed = powerKp * motorPower;
+	private double clamp(double upper, double value, double lower) {
+		return Math.max(lower, Math.min(upper, value));
+	}
 
-		// System.out.print("steer");
-		// System.out.println(zRotation);
-		// System.out.print("motorPower");
-		// System.out.println(xSpeed);
+	private void computeMotorPower(double motorPower, double steer) {
+		zRotation = steerKp * steer;
+		xSpeed = motorPower;
 
 		m_driveTrain.driveBase.arcadeDrive(xSpeed, zRotation, false);
     }
 
-	public static List<Pose> interpolateTowardsEachOther(Pose start, Pose goal, double motorPower, double timeStep, double maxAngularRate) {
-        List<Pose> pathStart = new ArrayList<>();
-        List<Pose> pathGoal = new ArrayList<>();
+	private List<Pose> interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
+        List<Pose> points = new ArrayList<>();
         
-        pathStart.add(start);
-        pathGoal.add(goal);
+        double directionX = Math.cos(goal.yaw);
+        double directionY = Math.sin(goal.yaw);
         
-        Pose currentStart = start;
-        Pose currentGoal = goal;
+        // Project current position onto the goal's tangent line
+        double displacementX = current.x - goal.x;
+        double displacementY = current.y - goal.y;
+        double projectionLength = displacementX * directionX + displacementY * directionY;
+        double projectedStartX = goal.x + projectionLength * directionX;
+        double projectedStartY = goal.y + projectionLength * directionY;
         
-        while (distance(currentStart, currentGoal) > motorPower * driveTrain.motorToVelocity * timeStep) {
-            // Compute direction vectors
-            double startDirX = Math.cos(currentStart.yaw);
-            double startDirY = Math.sin(currentStart.yaw);
-            double goalDirX = Math.cos(currentGoal.yaw);
-            double goalDirY = Math.sin(currentGoal.yaw);
-            
-            double stepSize = motorPower * timeStep;
-            
-            // Compute new positions
-            Pose newStart = new Pose(
-                currentStart.x + startDirX * stepSize,
-                currentStart.y + startDirY * stepSize,
-                currentStart.yaw
-            );
-            Pose newGoal = new Pose(
-                currentGoal.x - goalDirX * stepSize,
-                currentGoal.y - goalDirY * stepSize,
-                currentGoal.yaw
-            );
-            
-            // Compute desired yaw
-            double desiredYaw = Math.atan2(newGoal.y - newStart.y, newGoal.x - newStart.x);
-            
-            // Limit angular velocity change
-            double yawChange = maxAngularRate * timeStep;
-            newStart.yaw = clamp(desiredYaw, currentStart.yaw - yawChange, currentStart.yaw + yawChange);
-            newGoal.yaw = clamp(desiredYaw, currentGoal.yaw - yawChange, currentGoal.yaw + yawChange);
-            
-            pathStart.add(newStart);
-            pathGoal.add(newGoal);
-            
-            currentStart = newStart;
-            currentGoal = newGoal;
+        // Generate evenly spaced points along the tangent line
+        double totalDistance = Math.sqrt(Math.pow(goal.x - projectedStartX, 2) + Math.pow(goal.y - projectedStartY, 2));
+        double spacing = totalDistance / (numPoints - 1);
+        
+        for (int i = 0; i < numPoints; i++) {
+            double x = projectedStartX + i * spacing * directionX;
+            double y = projectedStartY + i * spacing * directionY;
+            points.add(new Pose(x, y, goal.yaw));
         }
         
-        // Reverse goal path and merge
-        for (int i = pathGoal.size() - 2; i >= 0; i--) {
-            pathStart.add(pathGoal.get(i));
-        }
-
-        pathGoal.clear();
-        
-        // return fullPath;
-        // Remove redundant points
-        List<Pose> outPath = removeRedundantPoints(pathStart);
-
-        pathStart.clear();
-        return outPath;
-    }
-
-    private static double distance(Pose a, Pose b) {
-        return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
-    }
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private static List<Pose> removeRedundantPoints(List<Pose> path) {
-        List<Pose> filteredPath = new ArrayList<>();
-        filteredPath.add(path.get(0));
-        
-        for (int i = 1; i < path.size() - 1; i++) {
-            Pose prev = filteredPath.get(filteredPath.size() - 1);
-            Pose curr = path.get(i);
-            Pose next = path.get(i + 1);
-            
-            double dir1X = (curr.x - prev.x) / distance(curr, prev);
-            double dir1Y = (curr.y - prev.y) / distance(curr, prev);
-            double dir2X = (next.x - curr.x) / distance(next, curr);
-            double dir2Y = (next.y - curr.y) / distance(next, curr);
-            
-            double dotProduct = dir1X * dir2X + dir1Y * dir2Y;
-            if (dotProduct < 0.999 || Math.abs(curr.yaw - prev.yaw) > Math.toRadians(.01)) {
-                filteredPath.add(curr);
-            }
-        }
-        
-        filteredPath.add(path.get(path.size() - 1));
-        path.clear();
-    
-        return filteredPath;
+        return points;
     }
 }
