@@ -27,7 +27,7 @@ public class RobotContainer {
 	private Trigger greenRB = 					green.rightBumper();
 	private Trigger greenLB = 					green.leftBumper();
 	private Trigger greenA = 					green.a();
-	// private Trigger greenB = 					green.b();
+	private Trigger greenB = 					green.b();
 	private Trigger greenX = 					green.x();
 	// private Trigger ltTrigger = purple.leftTrigger(); //used for front flip
 	// private Trigger rTrigger = purple.rightTrigger(); //used for AlgaeArm
@@ -62,7 +62,7 @@ public class RobotContainer {
 	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 
 	private AprilTest m_april = new AprilTest(m_driveTrain);
-	// private StanleyTest m_stanley = new StanleyTest(m_driveTrain);
+	private StanleyTest m_stanley = new StanleyTest(m_driveTrain);
 	private AprilStanleyTest m_aprilStanley = new AprilStanleyTest(m_driveTrain);
 
 	public RobotContainer() {
@@ -95,7 +95,7 @@ public class RobotContainer {
 		greenRB.whileTrue(m_AlgeaOut);
 
 		greenA.whileTrue(m_april);
-		// greenB.whileTrue(m_stanley);
+		greenB.whileTrue(m_stanley);
 		greenX.whileTrue(m_aprilStanley);
 	}
 

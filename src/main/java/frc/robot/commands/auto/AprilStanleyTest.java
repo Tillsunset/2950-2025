@@ -1,7 +1,7 @@
 package frc.robot.commands.auto;
 
-import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.driveTrain;
+import frc.robot.LimelightHelpers;
 import frc.robot.Pose;
 
 import java.util.ArrayList;
@@ -14,17 +14,17 @@ public class AprilStanleyTest extends Command {
 	private final driveTrain m_driveTrain;
 
 	/*******************Stanley Control variables**********************/
-	private double k = 0.5; // how strongly correct cross error
+    private double steerKp = .75; // tune heading error
+	private double k = 3; // tune correct cross error
     private double maxSteer = Math.toRadians(45);
-    private double steerKp = 1; // tune steering strength
 
-    double motorPower = 0.25;
+    double motorPower = 0.4;
 	double zRotation = 0;
 	double xSpeed = 0;
 	/*******************Stanley Control variables**********************/
 
 	/*******************Interpolation variables**********************/
-	private static int interpolationPoints = 4;
+	private static int numPoints = 6;
 
 	Pose current = new Pose(0, 0, 0);
     Pose goal = new Pose(0, 0, 0);
@@ -35,11 +35,28 @@ public class AprilStanleyTest extends Command {
 	public AprilStanleyTest(driveTrain driveTrain) {
 		m_driveTrain = driveTrain;
 		addRequirements(driveTrain);
+
+		for (int i = 0; i < numPoints; i++) {
+            waypoints.add(new Pose(0, 0, 0)); // Pre-allocate memory
+        }
 	}
 
 	@Override
 	public void initialize() {
 		m_driveTrain.resetPos();
+		for (int i = 0; i < numPoints; i++) {
+            waypoints.get(i).x = 0;
+            waypoints.get(i).y = 0;
+            waypoints.get(i).yaw = 0;
+        }
+
+		current.x = 0;
+		current.y = 0;
+		current.yaw = 0;
+
+		goal.x = 0;
+		goal.y = 0;
+		goal.yaw = 0;
 	}
 
 	@Override
@@ -55,8 +72,8 @@ public class AprilStanleyTest extends Command {
             goal.y = pose.getX();
 			goal.yaw = -pose.getRotation().getY();
 
-			waypoints.clear();
-			waypoints = interpolateAlignedPoints(current, goal, interpolationPoints);
+			// waypoints.clear();
+			interpolateAlignedPoints(current, goal, numPoints);
 		}
 		else {
 			current.x = m_driveTrain.posX;
@@ -64,10 +81,11 @@ public class AprilStanleyTest extends Command {
 			current.yaw = m_driveTrain.filteredyaw;
 		}
 
-		if (!waypoints.isEmpty()) {
+		if (waypoints.get(numPoints - 1).x != 0) {
 			double steer = computeControl(current, waypoints);
 			computeMotorPower(motorPower, steer);
 		}
+		printGoalMotor();
 	}
 
 	@Override
@@ -135,9 +153,7 @@ public class AprilStanleyTest extends Command {
 		m_driveTrain.driveBase.arcadeDrive(xSpeed, zRotation, false);
     }
 
-	private List<Pose> interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
-        List<Pose> points = new ArrayList<>();
-        
+	private void interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
         double directionX = Math.cos(goal.yaw);
         double directionY = Math.sin(goal.yaw);
         
@@ -148,16 +164,14 @@ public class AprilStanleyTest extends Command {
         double projectedStartX = goal.x + projectionLength * directionX;
         double projectedStartY = goal.y + projectionLength * directionY;
         
-        // Generate evenly spaced points along the tangent line
+        // Generate evenly spaced points from current to goal along the tangent line
         double totalDistance = Math.sqrt(Math.pow(goal.x - projectedStartX, 2) + Math.pow(goal.y - projectedStartY, 2));
         double spacing = totalDistance / (numPoints - 1);
         
         for (int i = 0; i < numPoints; i++) {
-            double x = projectedStartX + i * spacing * directionX;
-            double y = projectedStartY + i * spacing * directionY;
-            points.add(new Pose(x, y, goal.yaw));
+            waypoints.get(i).x = projectedStartX + i * spacing * directionX;
+            waypoints.get(i).y = projectedStartY + i * spacing * directionY;
+            waypoints.get(i).yaw = goal.yaw;
         }
-        
-        return points;
     }
 }
