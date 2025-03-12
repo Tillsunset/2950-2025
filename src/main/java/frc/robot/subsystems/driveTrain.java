@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
@@ -30,9 +31,9 @@ public class driveTrain extends SubsystemBase {
 	ADIS16470_IMU IMU = new ADIS16470_IMU();
 	/*****************Position estimate variables**********************/
 
-	public SparkMax right = new SparkMax(2, MotorType.kBrushed);
-	public SparkMax left = new SparkMax(4, MotorType.kBrushed);
-	public DifferentialDrive driveBase = new DifferentialDrive(left, right);
+	// public SparkMax right = new SparkMax(2, MotorType.kBrushed);
+	// public SparkMax left = new SparkMax(4, MotorType.kBrushed);
+	// public DifferentialDrive driveBase = new DifferentialDrive(left, right);
 
 	private SparkMax driveFR = new SparkMax(16, MotorType.kBrushless);
 	private SparkMax driveBR = new SparkMax(20, MotorType.kBrushless);
@@ -40,7 +41,11 @@ public class driveTrain extends SubsystemBase {
 	private SparkMax driveFL = new SparkMax(17, MotorType.kBrushless);
 	private SparkMax driveBL = new SparkMax(3, MotorType.kBrushless);
 
-	// public DifferentialDrive driveBase = new DifferentialDrive(driveFL, driveFR);
+	public DifferentialDrive driveBase = new DifferentialDrive(driveFL, driveFR);
+
+	private RelativeEncoder right = driveFR.getEncoder();
+	private RelativeEncoder left = driveFL.getEncoder();
+
 
 	public driveTrain() {
 		SparkMaxConfig globalConfig = new SparkMaxConfig();
@@ -49,7 +54,7 @@ public class driveTrain extends SubsystemBase {
 		SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
 
 		globalConfig
-			.smartCurrentLimit(40)
+			.smartCurrentLimit(50)
 			.inverted(true)
 			.idleMode(IdleMode.kCoast);
 
@@ -68,12 +73,11 @@ public class driveTrain extends SubsystemBase {
 		driveFR.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		driveBR.configure(leftFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-
 		driveFL.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		driveBL.configure(rightFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-		left.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-		right.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		// left.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+		// right.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		
 		IMU.calibrate();
 		resetPos();
@@ -105,8 +109,8 @@ public class driveTrain extends SubsystemBase {
 
 		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.get() * motorPowerToVelocity;
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.get() * motorPowerToVelocity;
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.getVelocity() * motorRPMToVelocity;
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.getVelocity() * motorRPMToVelocity;
 
         // Compute linear and angular velocity using trapezoidal integration
         double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
