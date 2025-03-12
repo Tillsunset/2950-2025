@@ -27,7 +27,7 @@ public class RobotContainer {
 	private Trigger greenRB = 					green.rightBumper();
 	private Trigger greenLB = 					green.leftBumper();
 	private Trigger greenA = 					green.a();
-	private Trigger greenB = 					green.b();
+	// private Trigger greenB = 					green.b();
 	private Trigger greenX = 					green.x();
 	// private Trigger ltTrigger = purple.leftTrigger(); //used for front flip
 	// private Trigger rTrigger = purple.rightTrigger(); //used for AlgaeArm

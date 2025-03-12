@@ -14,7 +14,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class driveTrain extends SubsystemBase {
 
 	/*****************Position estimate variables**********************/
-	public static double motorToVelocity = 5880. * 3.1415 * 6./(39.37 * 60. * 8.45);
+	public static double motorPowerToVelocity = 5880. * 3.1415 * 6./(39.37 * 60. * 8.45);
+	public static double motorRPMToVelocity = 3.1415 * 6./(39.37 * 60. * 8.45);
 	public double posX, posY;
 	public double linearVel, prevLinearVel;
 
@@ -73,7 +74,6 @@ public class driveTrain extends SubsystemBase {
 
 		left.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		right.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-
 		
 		IMU.calibrate();
 		resetPos();
@@ -105,8 +105,8 @@ public class driveTrain extends SubsystemBase {
 
 		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.get() * motorToVelocity;
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.get() * motorToVelocity;
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.get() * motorPowerToVelocity;
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.get() * motorPowerToVelocity;
 
         // Compute linear and angular velocity using trapezoidal integration
         double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;

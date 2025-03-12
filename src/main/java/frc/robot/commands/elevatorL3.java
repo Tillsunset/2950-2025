@@ -13,7 +13,7 @@ public class elevatorL3 extends Command {
 
 	@Override
 	public void initialize() {
-		m_elevator.updateTargetPosition(41);
+		m_elevator.l3();
 	}
 
 	@Override

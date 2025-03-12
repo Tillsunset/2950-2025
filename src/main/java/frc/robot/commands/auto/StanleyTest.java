@@ -13,7 +13,7 @@ public class StanleyTest extends Command {
 	private final driveTrain m_driveTrain;
 
 	/*******************Stanley Control variables**********************/
-	private double k = 0.5;
+	private double k = 1;
     private double kSoft = 0.001;
     private double maxSteer = Math.toRadians(30);
     private double steerKp = .5;
@@ -85,7 +85,7 @@ public class StanleyTest extends Command {
         double headingError = pathYaw - yaw;
         headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
         
-        double steer = headingError + Math.atan2(k * crossTrackError, (kSoft + v * driveTrain.motorToVelocity));
+        double steer = headingError + Math.atan2(k * crossTrackError, (kSoft + v * driveTrain.motorPowerToVelocity));
         return Math.max(-maxSteer, Math.min(maxSteer, steer));
     }
 
@@ -111,7 +111,7 @@ public class StanleyTest extends Command {
         Pose currentStart = start;
         Pose currentGoal = goal;
         
-        while (distance(currentStart, currentGoal) > motorPower * driveTrain.motorToVelocity * timeStep) {
+        while (distance(currentStart, currentGoal) > motorPower * driveTrain.motorPowerToVelocity * timeStep) {
             // Compute direction vectors
             double startDirX = Math.cos(currentStart.yaw);
             double startDirY = Math.sin(currentStart.yaw);

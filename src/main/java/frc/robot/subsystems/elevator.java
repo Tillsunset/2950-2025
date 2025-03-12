@@ -25,6 +25,9 @@ public class elevator extends SubsystemBase {
 	private RelativeEncoder encoder = front.getEncoder();
 
 	private double feedForward = 0.;
+	private double l1Pos = 0;
+	private double l2Pos = 15.5;
+	private double l3Pos = 41;
 
 	public elevator() {
 		SparkMaxConfig leaderConfig = new SparkMaxConfig();
@@ -51,7 +54,17 @@ public class elevator extends SubsystemBase {
 	@Override
 	public void periodic() {}
 
-	public void updateTargetPosition(double target) {
-		closedLoopController.setReference(target, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
+	private void setTargetPosition(double pos) {
+		closedLoopController.setReference(pos, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward, ArbFFUnits.kPercentOut);
+	}
+
+	public void l1() {
+		setTargetPosition(l1Pos);
+	}
+	public void l2() {
+		setTargetPosition(l2Pos);
+	}
+	public void l3() {
+		setTargetPosition(l3Pos);
 	}
 }

@@ -24,7 +24,7 @@ public class AprilStanleyTest extends Command {
 	/*******************Stanley Control variables**********************/
 
 	/*******************Interpolation variables**********************/
-	private static int interpolationPoints = 5;
+	private static int interpolationPoints = 4;
 
 	Pose current = new Pose(0, 0, 0);
     Pose goal = new Pose(0, 0, 0);
@@ -55,7 +55,7 @@ public class AprilStanleyTest extends Command {
             goal.y = pose.getX();
 			goal.yaw = -pose.getRotation().getY();
 
-			// waypoints.clear();
+			waypoints.clear();
 			waypoints = interpolateAlignedPoints(current, goal, interpolationPoints);
 		}
 		else {
@@ -95,6 +95,10 @@ public class AprilStanleyTest extends Command {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
+	private double clamp(double upper, double value, double lower) {
+		return Math.max(lower, Math.min(upper, value));
+	}
+
 	private double computeControl(Pose current, List<Pose> waypoints) {
         double minDist = Double.MAX_VALUE;
 		int nearestIdx = 0;
@@ -120,13 +124,9 @@ public class AprilStanleyTest extends Command {
         double headingError = pathYaw - current.yaw;
         headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
         
-        double stanley_steer = headingError + Math.atan2(k * crossTrackError, (motorPower * driveTrain.motorToVelocity));
+        double stanley_steer = headingError + Math.atan2(k * crossTrackError, (motorPower * driveTrain.motorPowerToVelocity));
         return clamp(maxSteer, stanley_steer, -maxSteer);
     }
-
-	private double clamp(double upper, double value, double lower) {
-		return Math.max(lower, Math.min(upper, value));
-	}
 
 	private void computeMotorPower(double motorPower, double steer) {
 		zRotation = steerKp * steer;

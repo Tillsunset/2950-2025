@@ -34,7 +34,7 @@ public class leaveScoreL3 extends Command {
 		}
 		else if (m_timer.get() < 5) {
 			m_driveTrain.driveBase.stopMotor();
-			m_elevator.updateTargetPosition(41);
+			m_elevator.l3();
 		}
 		else if (m_timer.get() < 6) {
 			m_coralIntake.setOutput(-1.);
@@ -45,7 +45,7 @@ public class leaveScoreL3 extends Command {
 	@Override
 	public void end(boolean interrupted) {
 		m_driveTrain.driveBase.stopMotor();
-		m_elevator.updateTargetPosition(0);
+		m_elevator.l1();
 		m_coralIntake.setOutput(0);
 		m_timer.stop();
 	}
