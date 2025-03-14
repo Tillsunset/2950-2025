@@ -23,7 +23,7 @@ public class coralShoot extends Command {
 
 	@Override
 	public void execute() {
-		m_coralIntake.setOutput(1);
+		m_coralIntake.setOutput(-1);
 	}
 
 	@Override
