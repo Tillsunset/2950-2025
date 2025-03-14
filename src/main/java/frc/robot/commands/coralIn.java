@@ -23,7 +23,7 @@ public class coralIn extends Command {
 
 	@Override
 	public void end(boolean interrupted) {
-		m_coralIntake.setOutput(0.1);
+		m_coralIntake.setOutput(0);
 	}
 
 	@Override

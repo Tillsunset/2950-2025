@@ -2,10 +2,11 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.*;
 import frc.robot.commands.auto.*;
 import frc.robot.subsystems.*;
@@ -58,8 +59,16 @@ public class RobotContainer {
 	private winchDown m_WinchDown = new winchDown(m_Winch);
 
 	private leaveStarting m_leave = new leaveStarting(m_driveTrain);
-	private leaveScoreL2 m_leaveScoreL2 = new leaveScoreL2(m_driveTrain, m_elevator, m_coralIntake);
-	private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
+	private SequentialCommandGroup m_leaveScoreL2 = new leaveStarting(m_driveTrain).andThen(
+										  			new AprilStanleyTest(m_driveTrain)).andThen(
+													new elevatorL2(m_elevator)).andThen(
+													new coralShoot(m_coralIntake));
+	private SequentialCommandGroup m_leaveScoreL3 = new leaveStarting(m_driveTrain).andThen(
+													new AprilStanleyTest(m_driveTrain)).andThen(
+													new elevatorL3(m_elevator)).andThen(
+													new coralShoot(m_coralIntake));
+	// private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
+	// private leaveScoreL2 m_leaveScoreL2 = new leaveScoreL2(m_driveTrain, m_elevator, m_coralIntake);
 
 	private AprilTest m_april = new AprilTest(m_driveTrain);
 	private StanleyTest m_stanley = new StanleyTest(m_driveTrain);
