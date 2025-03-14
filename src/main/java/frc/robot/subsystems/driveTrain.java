@@ -224,8 +224,18 @@ public class driveTrain extends SubsystemBase {
 		}
 	}
 
-	public double getGoalDistance() {
-		return distance(current.x - goal.x, current.y - goal.y);
+	public boolean getFinishedGoal() {
+		double directionX = Math.cos(goal.yaw);
+        double directionY = Math.sin(goal.yaw);
+        
+        double displacementX = current.x - goal.x;
+        double displacementY = current.y - goal.y;
+        
+        // Compute projection onto the goal direction
+        double projection = displacementX * directionX + displacementY * directionY;
+        
+        // If projection is positive, we are on the correct side (past the goal)
+        return projection > 0;
 	}
 
 	private double computeControl(Pose current, List<Pose> waypoints) {

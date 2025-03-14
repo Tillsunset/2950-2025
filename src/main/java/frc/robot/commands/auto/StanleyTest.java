@@ -41,6 +41,6 @@ public class StanleyTest extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return m_driveTrain.getGoalDistance() < 0.2;
+		return m_driveTrain.getFinishedGoal();
 	}
 }
