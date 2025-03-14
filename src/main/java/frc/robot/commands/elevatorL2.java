@@ -11,6 +11,8 @@ public class elevatorL2 extends Command {
 	public elevatorL2(elevator elevator) {
 		m_elevator = elevator;
 		addRequirements(m_elevator);
+		m_timer = new Timer();
+
 	}
 
 	@Override

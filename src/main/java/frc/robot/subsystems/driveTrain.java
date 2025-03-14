@@ -49,12 +49,12 @@ public class driveTrain extends SubsystemBase {
 	/*******************Stanley Control variables**********************/
 
 	/*******************Interpolation variables**********************/
-	private static int numPoints = 6;
+	public int numPoints = 6;
 
 	public Pose current = new Pose(0, 0, 0);
     public Pose goal = new Pose(0, 0, 0);
 
-	List<Pose> waypoints = new ArrayList<>();
+	public List<Pose> waypoints = new ArrayList<>();
 	/*******************Interpolation variables**********************/
 
 	// public SparkMax right = new SparkMax(2, MotorType.kBrushed);
@@ -114,6 +114,8 @@ public class driveTrain extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		printGoalMotor();
+		printPosVelHead();
 	}
 
 	public void printPosVelHead() {
@@ -136,8 +138,8 @@ public class driveTrain extends SubsystemBase {
 
 		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * left.getVelocity() * motorRPMToVelocity * 0.9 + driveFL.get() * 0.1 * motorPowerToVelocity;
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * right.getVelocity() * motorRPMToVelocity * 0.9 + driveFR.get() * 0.1 * motorPowerToVelocity;
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.9 + driveFL.get() * 0.1 * motorPowerToVelocity);
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.9 + driveFR.get() * 0.1 * motorPowerToVelocity);
 
         // Compute linear and angular velocity using trapezoidal integration
         double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
@@ -262,7 +264,7 @@ public class driveTrain extends SubsystemBase {
 		driveBase.arcadeDrive(-xSpeed, zRotation, false);
     }
 
-	private void interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
+	public void interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
         double directionX = Math.cos(goal.yaw);
         double directionY = Math.sin(goal.yaw);
         
