@@ -60,13 +60,15 @@ public class RobotContainer {
 
 	private leaveStarting m_leave = new leaveStarting(m_driveTrain);
 	private SequentialCommandGroup m_leaveScoreL2 = new leaveStarting(m_driveTrain).andThen(
-										  			new AprilStanleyTest(m_driveTrain)).andThen(
 													new elevatorL2(m_elevator)).andThen(
-													new coralShoot(m_coralIntake));
-	private SequentialCommandGroup m_leaveScoreL3 = new leaveStarting(m_driveTrain).andThen(
 													new AprilStanleyTest(m_driveTrain)).andThen(
-													new elevatorL3(m_elevator)).andThen(
 													new coralShoot(m_coralIntake));
+
+	private SequentialCommandGroup m_leaveScoreL3 = new leaveStarting(m_driveTrain).andThen(
+													new elevatorL3(m_elevator)).andThen(
+													new AprilStanleyTest(m_driveTrain)).andThen(
+													new coralShoot(m_coralIntake));
+
 	// private leaveScoreL3 m_leaveScoreL3 = new leaveScoreL3(m_driveTrain, m_elevator, m_coralIntake);
 	// private leaveScoreL2 m_leaveScoreL2 = new leaveScoreL2(m_driveTrain, m_elevator, m_coralIntake);
 

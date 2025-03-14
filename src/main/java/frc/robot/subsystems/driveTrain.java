@@ -259,7 +259,7 @@ public class driveTrain extends SubsystemBase {
 		zRotation = steerKp * steer;
 		xSpeed = motorPower;
 
-		driveBase.arcadeDrive(xSpeed, zRotation, false);
+		driveBase.arcadeDrive(-xSpeed, zRotation, false);
     }
 
 	private void interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
