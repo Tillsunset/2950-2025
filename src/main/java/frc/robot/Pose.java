@@ -9,4 +9,10 @@ public class Pose {
         this.yaw = yaw;
     }
 
+    public Pose() {
+        this.x = 0;
+        this.y = 0;
+        this.yaw = 0;
+    }
+
 }

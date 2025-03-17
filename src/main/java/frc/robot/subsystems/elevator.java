@@ -27,7 +27,7 @@ public class elevator extends SubsystemBase {
 	private double feedForward = 0.;
 	private double l1Pos = 0;
 	private double l2Pos = 15.5;
-	private double l3Pos = 41;
+	private double l3Pos = 41.5;
 
 	public elevator() {
 		SparkMaxConfig leaderConfig = new SparkMaxConfig();

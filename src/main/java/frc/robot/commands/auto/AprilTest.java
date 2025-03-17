@@ -8,24 +8,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class AprilTest extends Command {
 	private final driveTrain m_empty;
 
-	double forwardGoal = .1;
-	double forwardDistance;
-	double forwardError;
-	double kPDistance = 1;
-
-	double sideGoal = 0.0;
-	double sideDistance;
-	double sideOError;
-	double kPSide = 1.;
-
 	public AprilTest(driveTrain empty) {
 		m_empty = empty;
 		addRequirements(empty);
-		LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{1, 17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11});
+		LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11});
 	}
 
 	@Override
 	public void initialize() {
+		m_empty.driveBase.stopMotor();
 	}
 
 	@Override
@@ -41,13 +32,11 @@ public class AprilTest extends Command {
 		}
 		else {
 			System.out.println("not found");
-			m_empty.driveBase.feed();
 		}
 	}
 
 	@Override
 	public void end(boolean interrupted) {
-		m_empty.driveBase.stopMotor();
 	}
 
 	@Override

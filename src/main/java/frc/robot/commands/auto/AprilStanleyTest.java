@@ -19,7 +19,7 @@ public class AprilStanleyTest extends Command {
 
 	@Override
 	public void execute() {
-		m_driveTrain.updatePos();
+		m_driveTrain.updateOdometry();
 		// m_driveTrain.printPosVelHead();
 		m_driveTrain.updateWaypoints();
 		m_driveTrain.updateMotors();
@@ -33,6 +33,6 @@ public class AprilStanleyTest extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return m_driveTrain.getGoalDistance() < 0.2;
+		return m_driveTrain.getFinishedGoal();
 	}
 }

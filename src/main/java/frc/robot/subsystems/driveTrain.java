@@ -22,28 +22,30 @@ import frc.robot.Pose;
 public class driveTrain extends SubsystemBase {
 
 	/*****************Odometry variables**********************/
-	public static double motorPowerToVelocity = 5880. * 3.1415 * 6./(39.37 * 60. * 8.45);
 	public static double motorRPMToVelocity = 3.1415 * 6./(39.37 * 60. * 8.45);
+	public static double motorPowerToVelocity = 5880. * motorRPMToVelocity;
 	public double posX, posY;
 	public double linearVel, prevLinearVel;
 
 	private double prevLeftWheelVel = 0.0, prevRightWheelVel = 0.0;  // Previous wheel velocities for trapezoidal integration
-	private double filteredLeftVel = 0.0, filteredRightVel = 0.0;  // Low-pass filtered velocities
+	private double leftVel = 0.0, rightVel = 0.0;  // Low-pass filtered velocities
 
 	private static final double ALPHA = 0.8;  // Low-pass filter coefficient
 
-	public double filteredyaw; // Smoothed gyro heading
 	private static final double BETA = 0.8;  // Low-pass filter coefficient
+	public double yaw; // Smoothed gyro heading
+
+	private double dt = 0.02;
 
 	ADIS16470_IMU IMU = new ADIS16470_IMU();
 	/*****************Odometry variables**********************/
 
 	/*******************Stanley Control variables**********************/
-    private double steerKp = .75; // tune heading error
-	private double k = 3; // tune correct cross error
+    private double steerKp = .175; // tune heading error
+	private double k = 1; // tune correct cross error
     private double maxSteer = Math.toRadians(45);
 
-    double motorPower = 0.4;
+    double motorPower = 0.175;
 	double zRotation = 0;
 	double xSpeed = 0;
 	/*******************Stanley Control variables**********************/
@@ -51,8 +53,10 @@ public class driveTrain extends SubsystemBase {
 	/*******************Interpolation variables**********************/
 	public int numPoints = 6;
 
-	public Pose current = new Pose(0, 0, 0);
-    public Pose goal = new Pose(0, 0, 0);
+	public Pose current = new Pose();
+    public Pose goal = new Pose();
+
+	private static final double DELTA = 0.8;
 
 	public List<Pose> waypoints = new ArrayList<>();
 	/*******************Interpolation variables**********************/
@@ -114,8 +118,8 @@ public class driveTrain extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		printGoalMotor();
-		printPosVelHead();
+		// printGoalMotor();
+		// printPosVelHead();
 	}
 
 	public void printPosVelHead() {
@@ -129,34 +133,32 @@ public class driveTrain extends SubsystemBase {
 		// System.out.printf("%.2f\n", linearVel);
 
 		System.out.print("heading: ");
-		System.out.printf("%.2f\n", filteredyaw);
+		System.out.printf("%.2f\n", yaw);
 	}
 	
-	public void updatePos() {
+	public void updateOdometry() {
+		// Low Pass Filter Yaw and Wheel selocity signals
+		yaw = BETA * yaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		double dt = 0.02;
+		leftVel = ALPHA * leftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.8 + driveFL.get() * 0.2 * motorPowerToVelocity);
+        rightVel = ALPHA * rightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.8 + driveFR.get() * 0.2 * motorPowerToVelocity);
 
-		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
+        // Compute using trapezoidal integration
+        double linearVel = ((prevLeftWheelVel + leftVel) + (prevRightWheelVel + rightVel)) / 4.0;
 
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.9 + driveFL.get() * 0.1 * motorPowerToVelocity);
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.9 + driveFR.get() * 0.1 * motorPowerToVelocity);
-
-        // Compute linear and angular velocity using trapezoidal integration
-        double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
-		
-		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(filteredyaw) * dt;
-        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(filteredyaw) * dt;
+		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(yaw) * dt;
+        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(yaw) * dt;
 
 		// Store previous wheel velocities for next step
-		prevLeftWheelVel = filteredLeftVel;
-		prevRightWheelVel = filteredRightVel;
-		prevLeftWheelVel = linearVel;
+		prevLeftWheelVel = leftVel;
+		prevRightWheelVel = rightVel;
+		prevLinearVel = linearVel;
 	}
 
 	public void resetPos() {
 		posX = 0.0;
         posY = 0.0;
-		filteredyaw = 0.0;
+		yaw = 0.0;
 		linearVel = 0.0;
 		IMU.reset();
 	}
@@ -199,21 +201,27 @@ public class driveTrain extends SubsystemBase {
 	public void updateWaypoints () {
 		if (LimelightHelpers.getTV("")) {
 			resetPos();
+
 			current.x = 0;
 			current.y = 0;
 			current.yaw = 0;
 
 			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
-            goal.x = pose.getZ();
-            goal.y = pose.getX();
-			goal.yaw = -pose.getRotation().getY();
+            
+			// goal.x = pose.getZ();
+            // goal.y = pose.getX()+ 0.1;
+			// goal.yaw = -pose.getRotation().getY();
+
+			goal.x = DELTA * goal.x + (1 - DELTA) * (pose.getZ());
+            goal.y = DELTA * goal.y + (1 - DELTA) * (pose.getX()+ 0.1);
+			goal.yaw = DELTA * goal.yaw + (1 - DELTA) * ( -pose.getRotation().getY());
 
 			interpolateAlignedPoints(current, goal, numPoints);
 		}
 		else {
 			current.x = posX;
 			current.y = posY;
-			current.yaw = filteredyaw;
+			current.yaw = yaw;
 		}
 	}
 
@@ -224,8 +232,16 @@ public class driveTrain extends SubsystemBase {
 		}
 	}
 
-	public double getGoalDistance() {
-		return distance(current.x - goal.x, current.y - goal.y);
+	public boolean getFinishedGoal() {
+		double directionX = Math.cos(goal.yaw);
+        
+        double displacementX = current.x - goal.x;
+        
+        // Compute projection onto the goal direction
+        double projection = displacementX * directionX;
+        
+        // If projection is positive, we are on the correct side (past the goal)
+        return projection > 0;
 	}
 
 	private double computeControl(Pose current, List<Pose> waypoints) {
