@@ -33,6 +33,7 @@ public class driveTrain extends SubsystemBase {
 	private static final double ALPHA = 0.8;  // Low-pass filter coefficient
 
 	private static final double BETA = 0.8;  // Low-pass filter coefficient
+	private static final double KAPPA = 0.8;  // Velocity Bias over motor Power
 	public double yaw; // Smoothed gyro heading
 
 	private double dt = 0.02;
@@ -41,11 +42,11 @@ public class driveTrain extends SubsystemBase {
 	/*****************Odometry variables**********************/
 
 	/*******************Stanley Control variables**********************/
-    private double steerKp = .175; // tune heading error
+	private double steerKp = .175; // tune heading error
 	private double k = 1; // tune correct cross error
-    private double maxSteer = Math.toRadians(45);
+	private double maxSteer = Math.toRadians(45);
 
-    double motorPower = 0.175;
+	double motorPower = 0.175;
 	double zRotation = 0;
 	double xSpeed = 0;
 	/*******************Stanley Control variables**********************/
@@ -54,7 +55,7 @@ public class driveTrain extends SubsystemBase {
 	public int numPoints = 6;
 
 	public Pose current = new Pose();
-    public Pose goal = new Pose();
+	public Pose goal = new Pose();
 
 	private static final double DELTA = 0.8;
 
@@ -112,8 +113,8 @@ public class driveTrain extends SubsystemBase {
 		IMU.calibrate();
 		resetPos();
 		for (int i = 0; i < numPoints; i++) {
-            waypoints.add(new Pose(0, 0, 0)); // Pre-allocate memory
-        }
+			waypoints.add(new Pose(0, 0, 0)); // Pre-allocate memory
+		}
 	}
 
 	@Override
@@ -135,33 +136,6 @@ public class driveTrain extends SubsystemBase {
 		System.out.print("heading: ");
 		System.out.printf("%.2f\n", yaw);
 	}
-	
-	public void updateOdometry() {
-		// Low Pass Filter Yaw and Wheel selocity signals
-		yaw = BETA * yaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
-
-		leftVel = ALPHA * leftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.8 + driveFL.get() * 0.2 * motorPowerToVelocity);
-        rightVel = ALPHA * rightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.8 + driveFR.get() * 0.2 * motorPowerToVelocity);
-
-        // Compute using trapezoidal integration
-        double linearVel = ((prevLeftWheelVel + leftVel) + (prevRightWheelVel + rightVel)) / 4.0;
-
-		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(yaw) * dt;
-        posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(yaw) * dt;
-
-		// Store previous wheel velocities for next step
-		prevLeftWheelVel = leftVel;
-		prevRightWheelVel = rightVel;
-		prevLinearVel = linearVel;
-	}
-
-	public void resetPos() {
-		posX = 0.0;
-        posY = 0.0;
-		yaw = 0.0;
-		linearVel = 0.0;
-		IMU.reset();
-	}
 
 	public void printGoalMotor() {
 		System.out.print("xSpeed: ");
@@ -182,12 +156,51 @@ public class driveTrain extends SubsystemBase {
 		return Math.max(lower, Math.min(upper, value));
 	}
 
+	public boolean getFinishedGoal() {
+		double directionX = Math.cos(goal.yaw);
+		
+		double displacementX = current.x - goal.x;
+		
+		// Compute projection onto the goal direction
+		double projection = displacementX * directionX;
+		
+		// If projection is positive, we are on the correct side (past the goal)
+		return projection > 0;
+	}
+
+	public void updateOdometry() {
+		// Low Pass Filter Yaw and Wheel selocity signals
+		yaw = BETA * yaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
+
+		leftVel = ALPHA * leftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * KAPPA + driveFL.get() * (1 - KAPPA) * motorPowerToVelocity);
+		rightVel = ALPHA * rightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * KAPPA + driveFR.get() * (1 - KAPPA) * motorPowerToVelocity);
+
+		// Compute using trapezoidal integration
+		double linearVel = ((prevLeftWheelVel + leftVel) + (prevRightWheelVel + rightVel)) / 4.0;
+
+		posX += 0.5 * (linearVel + prevLinearVel) * Math.cos(yaw) * dt;
+		posY += 0.5 * (linearVel + prevLinearVel) * Math.sin(yaw) * dt;
+
+		// Store previous wheel velocities for next step
+		prevLeftWheelVel = leftVel;
+		prevRightWheelVel = rightVel;
+		prevLinearVel = linearVel;
+	}
+
+	public void resetPos() {
+		posX = 0.0;
+		posY = 0.0;
+		yaw = 0.0;
+		linearVel = 0.0;
+		IMU.reset();
+	}
+
 	public void resetWaypoints () {
 		for (int i = 0; i < numPoints; i++) {
-            waypoints.get(i).x = 0;
-            waypoints.get(i).y = 0;
-            waypoints.get(i).yaw = 0;
-        }
+			waypoints.get(i).x = 0;
+			waypoints.get(i).y = 0;
+			waypoints.get(i).yaw = 0;
+		}
 		
 		current.x = 0;
 		current.y = 0;
@@ -207,13 +220,13 @@ public class driveTrain extends SubsystemBase {
 			current.yaw = 0;
 
 			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
-            
+			
 			// goal.x = pose.getZ();
-            // goal.y = pose.getX()+ 0.1;
+			// goal.y = pose.getX()+ 0.1;
 			// goal.yaw = -pose.getRotation().getY();
 
 			goal.x = DELTA * goal.x + (1 - DELTA) * (pose.getZ());
-            goal.y = DELTA * goal.y + (1 - DELTA) * (pose.getX()+ 0.1);
+			goal.y = DELTA * goal.y + (1 - DELTA) * (pose.getX()+ 0.1);
 			goal.yaw = DELTA * goal.yaw + (1 - DELTA) * ( -pose.getRotation().getY());
 
 			interpolateAlignedPoints(current, goal, numPoints);
@@ -232,73 +245,61 @@ public class driveTrain extends SubsystemBase {
 		}
 	}
 
-	public boolean getFinishedGoal() {
-		double directionX = Math.cos(goal.yaw);
-        
-        double displacementX = current.x - goal.x;
-        
-        // Compute projection onto the goal direction
-        double projection = displacementX * directionX;
-        
-        // If projection is positive, we are on the correct side (past the goal)
-        return projection > 0;
-	}
-
 	private double computeControl(Pose current, List<Pose> waypoints) {
-        double minDist = Double.MAX_VALUE;
+		double minDist = Double.MAX_VALUE;
 		int nearestIdx = 0;
-        
-        for (int i = 0; i < waypoints.size(); i++) {
-            double dist = distance(waypoints.get(i).x - current.x, waypoints.get(i).y - current.y);
-            if (dist < minDist) {
-                minDist = dist;
-                nearestIdx = i;
-            }
-        }
-        
-        double targetX = waypoints.get(nearestIdx).x;
-        double targetY = waypoints.get(nearestIdx).y;
-        
-        double pathYaw = Math.atan2(
-            waypoints.get(Math.min(nearestIdx + 1, waypoints.size() - 1)).y - targetY,
-            waypoints.get(Math.min(nearestIdx + 1, waypoints.size() - 1)).x - targetX
-        );
-        
-        double crossTrackError = Math.sin(pathYaw) * (current.x - targetX) - Math.cos(pathYaw) * (current.y - targetY);
+		
+		for (int i = 0; i < waypoints.size(); i++) {
+			double dist = distance(waypoints.get(i).x - current.x, waypoints.get(i).y - current.y);
+			if (dist < minDist) {
+				minDist = dist;
+				nearestIdx = i;
+			}
+		}
+		
+		double targetX = waypoints.get(nearestIdx).x;
+		double targetY = waypoints.get(nearestIdx).y;
+		
+		double pathYaw = Math.atan2(
+			waypoints.get(Math.min(nearestIdx + 1, waypoints.size() - 1)).y - targetY,
+			waypoints.get(Math.min(nearestIdx + 1, waypoints.size() - 1)).x - targetX
+		);
+		
+		double crossTrackError = Math.sin(pathYaw) * (current.x - targetX) - Math.cos(pathYaw) * (current.y - targetY);
 
-        double headingError = pathYaw - current.yaw;
-        headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
-        
-        double stanley_steer = headingError + Math.atan2(k * crossTrackError, (motorPower * driveTrain.motorPowerToVelocity * 0.1 + linearVel * 0.9));
-        return clamp(maxSteer, stanley_steer, -maxSteer);
-    }
+		double headingError = pathYaw - current.yaw;
+		headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
+		
+		double stanley_steer = headingError + Math.atan2(k * crossTrackError, (motorPower * driveTrain.motorPowerToVelocity * 0.1 + linearVel * 0.9));
+		return clamp(maxSteer, stanley_steer, -maxSteer);
+	}
 
 	private void computeMotorPower(double motorPower, double steer) {
 		zRotation = steerKp * steer;
 		xSpeed = motorPower;
 
 		driveBase.arcadeDrive(-xSpeed, zRotation, false);
-    }
+	}
 
 	public void interpolateAlignedPoints(Pose current, Pose goal, int numPoints) {
-        double directionX = Math.cos(goal.yaw);
-        double directionY = Math.sin(goal.yaw);
-        
-        // Project current position onto the goal's tangent line
-        double displacementX = current.x - goal.x;
-        double displacementY = current.y - goal.y;
-        double projectionLength = displacementX * directionX + displacementY * directionY;
-        double projectedStartX = goal.x + projectionLength * directionX;
-        double projectedStartY = goal.y + projectionLength * directionY;
-        
-        // Generate evenly spaced points from current to goal along the tangent line
-        double totalDistance = Math.sqrt(Math.pow(goal.x - projectedStartX, 2) + Math.pow(goal.y - projectedStartY, 2));
-        double spacing = totalDistance / (numPoints - 1);
-        
-        for (int i = 0; i < numPoints; i++) {
-            waypoints.get(i).x = projectedStartX + i * spacing * directionX;
-            waypoints.get(i).y = projectedStartY + i * spacing * directionY;
-            waypoints.get(i).yaw = goal.yaw;
-        }
-    }
+		double directionX = Math.cos(goal.yaw);
+		double directionY = Math.sin(goal.yaw);
+		
+		// Project current position onto the goal's tangent line
+		double displacementX = current.x - goal.x;
+		double displacementY = current.y - goal.y;
+		double projectionLength = displacementX * directionX + displacementY * directionY;
+		double projectedStartX = goal.x + projectionLength * directionX;
+		double projectedStartY = goal.y + projectionLength * directionY;
+		
+		// Generate evenly spaced points from current to goal along the tangent line
+		double totalDistance = Math.sqrt(Math.pow(goal.x - projectedStartX, 2) + Math.pow(goal.y - projectedStartY, 2));
+		double spacing = totalDistance / (numPoints - 1);
+		
+		for (int i = 0; i < numPoints; i++) {
+			waypoints.get(i).x = projectedStartX + i * spacing * directionX;
+			waypoints.get(i).y = projectedStartY + i * spacing * directionY;
+			waypoints.get(i).yaw = goal.yaw;
+		}
+	}
 }
