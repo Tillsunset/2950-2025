@@ -1,11 +1,6 @@
 package frc.robot.commands.auto;
 
 import frc.robot.subsystems.driveTrain;
-import frc.robot.Pose;
-
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.List;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -29,7 +24,7 @@ public class StanleyTest extends Command {
 	@Override
 	public void execute() {
 
-		m_driveTrain.updatePos();
+		m_driveTrain.updateOdometry();
 		// m_driveTrain.printPosVelHead();
 		m_driveTrain.updateMotors();
 	}
