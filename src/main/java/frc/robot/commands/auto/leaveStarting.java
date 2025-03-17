@@ -34,6 +34,6 @@ public class leaveStarting extends Command {
 
 	@Override
 	public boolean isFinished() {
-		return m_timer.get() > 4;
+		return m_timer.get() > 0.5;
 	}
 }

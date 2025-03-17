@@ -39,11 +39,11 @@ public class driveTrain extends SubsystemBase {
 	/*****************Odometry variables**********************/
 
 	/*******************Stanley Control variables**********************/
-    private double steerKp = .75; // tune heading error
-	private double k = 3; // tune correct cross error
+    private double steerKp = .175; // tune heading error
+	private double k = 1; // tune correct cross error
     private double maxSteer = Math.toRadians(45);
 
-    double motorPower = 0.4;
+    double motorPower = 0.175;
 	double zRotation = 0;
 	double xSpeed = 0;
 	/*******************Stanley Control variables**********************/
@@ -138,8 +138,8 @@ public class driveTrain extends SubsystemBase {
 
 		filteredyaw = BETA * filteredyaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.9 + driveFL.get() * 0.1 * motorPowerToVelocity);
-        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.9 + driveFR.get() * 0.1 * motorPowerToVelocity);
+		filteredLeftVel = ALPHA * filteredLeftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * 0.8 + driveFL.get() * 0.2 * motorPowerToVelocity);
+        filteredRightVel = ALPHA * filteredRightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * 0.8 + driveFR.get() * 0.2 * motorPowerToVelocity);
 
         // Compute linear and angular velocity using trapezoidal integration
         double linearVel = 0.5 * ((prevLeftWheelVel + filteredLeftVel) + (prevRightWheelVel + filteredRightVel)) / 2.0;
@@ -205,7 +205,7 @@ public class driveTrain extends SubsystemBase {
 
 			Pose3d pose = LimelightHelpers.getTargetPose3d_CameraSpace("");
             goal.x = pose.getZ();
-            goal.y = pose.getX();
+            goal.y = pose.getX()+ 0.1;
 			goal.yaw = -pose.getRotation().getY();
 
 			interpolateAlignedPoints(current, goal, numPoints);
@@ -229,10 +229,9 @@ public class driveTrain extends SubsystemBase {
         double directionY = Math.sin(goal.yaw);
         
         double displacementX = current.x - goal.x;
-        double displacementY = current.y - goal.y;
         
         // Compute projection onto the goal direction
-        double projection = displacementX * directionX + displacementY * directionY;
+        double projection = displacementX * directionX;
         
         // If projection is positive, we are on the correct side (past the goal)
         return projection > 0;

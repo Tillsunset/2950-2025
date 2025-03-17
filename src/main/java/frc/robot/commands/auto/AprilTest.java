@@ -21,7 +21,7 @@ public class AprilTest extends Command {
 	public AprilTest(driveTrain empty) {
 		m_empty = empty;
 		addRequirements(empty);
-		LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{1, 17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11});
+		LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11});
 	}
 
 	@Override
