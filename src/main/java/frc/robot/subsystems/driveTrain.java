@@ -43,7 +43,7 @@ public class driveTrain extends SubsystemBase {
 
 	/*******************Stanley Control variables**********************/
 	private double steerKp = .175; // tune heading error
-	private double k = 1; // tune correct cross error
+	private double k = 1; // tune cross error
 	private double maxSteer = Math.toRadians(45);
 
 	double motorPower = 0.175;
@@ -61,10 +61,6 @@ public class driveTrain extends SubsystemBase {
 
 	public List<Pose> waypoints = new ArrayList<>();
 	/*******************Interpolation variables**********************/
-
-	// public SparkMax right = new SparkMax(2, MotorType.kBrushed);
-	// public SparkMax left = new SparkMax(4, MotorType.kBrushed);
-	// public DifferentialDrive driveBase = new DifferentialDrive(left, right);
 
 	private SparkMax driveFR = new SparkMax(16, MotorType.kBrushless);
 	private SparkMax driveBR = new SparkMax(20, MotorType.kBrushless);
@@ -106,9 +102,6 @@ public class driveTrain extends SubsystemBase {
 
 		driveFL.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		driveBL.configure(rightFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-
-		// left.configure(globalConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-		// right.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 		
 		IMU.calibrate();
 		resetPos();
