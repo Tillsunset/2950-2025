@@ -165,8 +165,8 @@ public class driveTrain extends SubsystemBase {
 		// Low Pass Filter Yaw and Wheel selocity signals
 		yaw = BETA * yaw + (1 - BETA) * Math.toRadians(IMU.getAngle());
 
-		leftVel = ALPHA * leftVel + (1 - ALPHA) * Math.abs(left.getVelocity() * motorRPMToVelocity * KAPPA + driveFL.get() * (1 - KAPPA) * motorPowerToVelocity);
-		rightVel = ALPHA * rightVel + (1 - ALPHA) * Math.abs(right.getVelocity() * motorRPMToVelocity * KAPPA + driveFR.get() * (1 - KAPPA) * motorPowerToVelocity);
+		leftVel = ALPHA * leftVel + (1 - ALPHA) * (Math.abs(left.getVelocity()) * motorRPMToVelocity * KAPPA + Math.abs(driveFL.get()) * (1 - KAPPA) * motorPowerToVelocity);
+		rightVel = ALPHA * rightVel + (1 - ALPHA) * (Math.abs(right.getVelocity()) * motorRPMToVelocity * KAPPA + Math.abs(driveFR.get()) * (1 - KAPPA) * motorPowerToVelocity);
 
 		// Compute using trapezoidal integration
 		double linearVel = ((prevLeftWheelVel + leftVel) + (prevRightWheelVel + rightVel)) / 4.0;
