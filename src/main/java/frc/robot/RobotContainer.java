@@ -38,7 +38,7 @@ public class RobotContainer {
 	private algaeIntake m_algeaIntake = new algaeIntake();
 	private algaeArm m_algeaArm = new algaeArm();
 	private elevator m_elevator = new elevator();
-	private winch m_Winch = new winch();
+	// private winch m_Winch = new winch();
 	
 	private driveTank m_driveTank = new driveTank(m_driveTrain, green.getHID());
 
@@ -55,8 +55,8 @@ public class RobotContainer {
 	private algeaIn m_AlgeaIn = new algeaIn(m_algeaIntake);
 	private algeaOut m_AlgeaOut = new algeaOut(m_algeaIntake);
 
-	private winchUp m_WinchUp = new winchUp(m_Winch);
-	private winchDown m_WinchDown = new winchDown(m_Winch);
+	// private winchUp m_WinchUp = new winchUp(m_Winch);
+	// private winchDown m_WinchDown = new winchDown(m_Winch);
 
 	private leaveStarting m_leave = new leaveStarting(m_driveTrain);
 	private SequentialCommandGroup m_leaveScoreL2 = new leaveStarting(m_driveTrain).andThen(
@@ -122,8 +122,8 @@ public class RobotContainer {
 		adaptiveA.whileTrue(m_coralIn);
 		adaptiveB.whileTrue(m_coralOut);
 
-		adaptiveStart.whileTrue(m_WinchUp);
-		adaptiveSelect.whileTrue(m_WinchDown);
+		// adaptiveStart.whileTrue(m_WinchUp);
+		// adaptiveSelect.whileTrue(m_WinchDown);
 
 		greenLB.whileTrue(m_AlgeaIn);
 		greenRB.whileTrue(m_AlgeaOut);
